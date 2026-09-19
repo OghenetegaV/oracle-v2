@@ -1,11 +1,35 @@
-# oracle_wizard.py
-"""
-Oracle Wizard — a friendly, no-terminal, step-by-step guide from an
-architectural drawing to a finished structural detail drawing.
+"""Oracle — Wizard (Tkinter GUI)
 
-Launch by double-clicking "Launch Oracle.bat", or running:
-    pythonw oracle_wizard.py
-No command-line knowledge needed beyond that.
+Purpose:
+    Eight-step guided workflow from drawing to detail drawing: drawing selection, checks,
+    questions, layout, analysis, design and drawing output, with notes and an Ask-Claude chat.
+
+Role in Oracle:
+    The current application entry point. It calls every legacy module and holds the whole
+    project state in one self.data dict (no oracle.core objects yet).
+
+Dependencies:
+    tkinter, config, oracle_log, dxf_parser, ga_dxf_parser, claude_ga_generator, ga_sketch,
+    ml_sketch, staad_v8i_integration, staad_mock, design_module, dwg_detail_generator,
+    lisp_detail_generator; anthropic (chat).
+
+Consumers:
+    Started by 'Launch Oracle.bat' (pythonw); not imported by other modules.
+
+Status:
+    Legacy / Transitional (the working application).
+
+Migration:
+    Retained unchanged. Per docs/PHASE_1_ARCHITECTURE.md it will later populate an OracleProject
+    alongside self.data, and only afterwards be reworked.
+
+Details (original module notes, retained):
+    Oracle Wizard — a friendly, no-terminal, step-by-step guide from an
+    architectural drawing to a finished structural detail drawing.
+
+    Launch by double-clicking "Launch Oracle.bat", or running:
+        pythonw oracle_wizard.py
+    No command-line knowledge needed beyond that.
 """
 
 import os
@@ -48,6 +72,13 @@ OCCUPANCY_TABLE = {
     "Shops / retail floors": 4.0,
     "Assembly areas (fixed seating)": 4.0,
     "Storage areas (light)": 5.0,
+}
+
+# BS 6399-3 roof-access categories, not room-use -- offered only for the top level of
+# a multi-floor import, instead of applying an office/residential load to a roof.
+ROOF_OCCUPANCY_TABLE = {
+    "Roof - no access (maintenance only)": 0.75,
+    "Roof - occasional access": 1.5,
 }
 
 MATERIAL_OPTIONS = ["Concrete (BS 8110)", "Steel (BS 5950)"]
@@ -135,8 +166,37 @@ class Wizard(tk.Tk):
                                     state="disabled")
         self.notes_btn.pack(side="right", padx=6)
 
-        self.content = tk.Frame(self, bg=COLOR_BG)
-        self.content.pack(side="top", fill="both", expand=True, padx=30, pady=20)
+        # Every step's content goes in self.content, same as before -- but that now
+        # lives inside a scrollable canvas rather than being packed straight into the
+        # window. Without this, a step whose content is taller than the window (a big
+        # sketch image, a long warning list) had nowhere to go: the content frame had
+        # no size cap, so the whole window grew to fit it, and on a screen too short
+        # to show the grown window, the footer (with Next) was pushed off-screen
+        # entirely -- unreachable, not just hidden. A fixed-size scrollable area
+        # caps the window's height and makes the overflow a scrollbar instead.
+        content_area = tk.Frame(self, bg=COLOR_BG)
+        content_area.pack(side="top", fill="both", expand=True)
+        self.content_canvas = tk.Canvas(content_area, bg=COLOR_BG, highlightthickness=0)
+        content_scrollbar = ttk.Scrollbar(content_area, orient="vertical", command=self.content_canvas.yview)
+        self.content = tk.Frame(self.content_canvas, bg=COLOR_BG)
+        content_window = self.content_canvas.create_window((0, 0), window=self.content, anchor="nw")
+
+        self.content.bind("<Configure>", lambda e: self.content_canvas.configure(
+            scrollregion=self.content_canvas.bbox("all")))
+        self.content_canvas.bind("<Configure>", lambda e: self.content_canvas.itemconfig(
+            content_window, width=e.width))
+        self.content_canvas.configure(yscrollcommand=content_scrollbar.set)
+
+        def _on_mousewheel(event):
+            self.content_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        # Bound only while the cursor is actually over the content area (not bind_all
+        # for the app's lifetime) so scrolling a dialog or the chat window doesn't
+        # instead scroll this hidden-behind-it canvas.
+        self.content_canvas.bind("<Enter>", lambda e: self.content_canvas.bind_all("<MouseWheel>", _on_mousewheel))
+        self.content_canvas.bind("<Leave>", lambda e: self.content_canvas.unbind_all("<MouseWheel>"))
+
+        self.content_canvas.pack(side="left", fill="both", expand=True, padx=(30, 6), pady=20)
+        content_scrollbar.pack(side="right", fill="y", pady=20)
 
         footer = tk.Frame(self, bg="white", height=60)
         footer.pack(side="bottom", fill="x")
@@ -864,16 +924,10 @@ class Wizard(tk.Tk):
                       "Defaults are filled in -- change anything that doesn't fit.").pack(
             anchor="w", pady=(0, 15))
 
-        # Scrollable, since this form has grown a fair bit -- keeps every screen
-        # usable at the window's minimum size instead of clipping fields.
-        canvas = tk.Canvas(self.content, bg=COLOR_BG, highlightthickness=0)
-        scrollbar = ttk.Scrollbar(self.content, orient="vertical", command=canvas.yview)
-        form = tk.Frame(canvas, bg=COLOR_BG)
-        form.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-        canvas.create_window((0, 0), window=form, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-        canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
+        # self.content itself scrolls (see _build_chrome) -- this form just packs
+        # straight into it like every other step's content.
+        form = tk.Frame(self.content, bg=COLOR_BG)
+        form.pack(anchor="w", fill="x")
 
         def row(label_text, widget_builder, hint=None, r=[0]):
             i = r[0]
@@ -961,41 +1015,81 @@ class Wizard(tk.Tk):
     def _show_step_3_multilevel(self):
         detect = self.data["ml_detect"]
         levels = detect["levels"]
-        tk.Label(self.content, text="Storey heights", font=FONT_TITLE,
+        tk.Label(self.content, text="Storey heights & floor loading", font=FONT_TITLE,
                  bg=COLOR_BG).pack(anchor="w", pady=(10, 5))
         tk.Label(self.content, bg=COLOR_BG, font=FONT_SUBTITLE, wraplength=700, justify="left",
-                 text="A plan drawing carries no elevation information, so this has to come "
-                      "from you -- one floor-to-floor height per level, ground up.").pack(
-            anchor="w", pady=(0, 15))
+                 text="A plan drawing carries no elevation or load information, so both have to "
+                      "come from you -- one row per floor.").pack(anchor="w", pady=(0, 15))
 
+        # self.content itself scrolls (see _build_chrome) -- this form just packs
+        # straight into it like every other step's content.
         form = tk.Frame(self.content, bg=COLOR_BG)
-        form.pack(anchor="w")
-        self.ml_storey_vars = {}
+        form.pack(anchor="w", fill="x")
+
+        headers = ["Floor", "Height (m)", "Use (sets imposed load)", "Slab thickness (mm)"]
+        for c, h in enumerate(headers):
+            tk.Label(form, text=h, font=("Segoe UI", 9, "bold"), bg=COLOR_BG, fg=COLOR_MUTED).grid(
+                row=0, column=c, sticky="w", padx=(0, 14), pady=(0, 6))
+
         tk.Label(form, text=f"Ground ({levels[0]})", font=FONT_BODY, bg=COLOR_BG).grid(
-            row=0, column=0, sticky="w", pady=6)
-        tk.Label(form, text="= 0.0 m (always the base)", font=FONT_SMALL, bg=COLOR_BG,
-                 fg=COLOR_MUTED).grid(row=0, column=1, sticky="w", padx=10)
-        for i, level in enumerate(levels[1:], start=1):
-            prev = levels[i - 1]
-            tk.Label(form, text=f"{prev} → {level}", font=FONT_BODY, bg=COLOR_BG).grid(
+            row=1, column=0, sticky="w", pady=6)
+        tk.Label(form, text="0.0 (base)", font=FONT_SMALL, bg=COLOR_BG, fg=COLOR_MUTED).grid(
+            row=1, column=1, sticky="w")
+
+        self.ml_storey_vars = {}
+        self.ml_occupancy_vars = {}
+        self.ml_slab_vars = {}
+        saved_occ = self.data.get("ml_per_level_loading", {})
+        saved_heights = self.data.get("ml_storey_heights", {})
+        for i, level in enumerate(levels[1:], start=2):
+            is_roof = level == levels[-1]
+            table = ROOF_OCCUPANCY_TABLE if is_roof else OCCUPANCY_TABLE
+            default_occ = "Roof - occasional access" if is_roof else "Offices (general use)"
+
+            tk.Label(form, text=f"{levels[i - 2]} → {level}", font=FONT_BODY, bg=COLOR_BG).grid(
                 row=i, column=0, sticky="w", pady=6)
-            var = tk.DoubleVar(value=self.data.get("ml_storey_heights", {}).get(level, 3.0))
-            tk.Spinbox(form, from_=2.4, to=12.0, increment=0.1, textvariable=var, width=8,
-                       font=FONT_BODY).grid(row=i, column=1, sticky="w", padx=10)
-            tk.Label(form, text="metres, floor-to-floor", font=FONT_SMALL, bg=COLOR_BG,
-                     fg=COLOR_MUTED).grid(row=i, column=2, sticky="w")
-            self.ml_storey_vars[level] = var
+
+            h_var = tk.DoubleVar(value=saved_heights.get(level, 3.0))
+            tk.Spinbox(form, from_=2.4, to=12.0, increment=0.1, textvariable=h_var, width=7,
+                       font=FONT_BODY).grid(row=i, column=1, sticky="w", padx=(0, 14))
+            self.ml_storey_vars[level] = h_var
+
+            occ_var = tk.StringVar(value=saved_occ.get(level, {}).get("occupancy", default_occ))
+            ttk.Combobox(form, textvariable=occ_var, width=26, font=FONT_BODY,
+                         values=list(table.keys()), state="readonly").grid(
+                row=i, column=2, sticky="w", padx=(0, 14))
+            self.ml_occupancy_vars[level] = (occ_var, table)
+
+            slab_var = tk.IntVar(value=saved_occ.get(level, {}).get("slab_thickness_mm", 150))
+            tk.Spinbox(form, from_=100, to=300, increment=25, textvariable=slab_var, width=7,
+                       font=FONT_BODY).grid(row=i, column=3, sticky="w")
+            self.ml_slab_vars[level] = slab_var
+
+        tk.Label(self.content, font=FONT_SMALL, fg=COLOR_MUTED, bg=COLOR_BG, wraplength=680,
+                 justify="left",
+                 text="Dead load = self-weight (from each slab's own thickness) + a standard "
+                      "1.5 kN/m² finishes allowance. Combined per BS 8110 cl 2.4.3 (1.4 dead + "
+                      "1.6 imposed). Wind/lateral load is not modeled.").pack(anchor="w", pady=(15, 0))
 
     def _advance_step_3_multilevel(self):
         detect = self.data["ml_detect"]
         levels = detect["levels"]
         cumulative = {levels[0]: 0.0}
         running = 0.0
+        per_level_loading = {}
         for level in levels[1:]:
             running += round(self.ml_storey_vars[level].get(), 2)
             cumulative[level] = running
+            occ_var, table = self.ml_occupancy_vars[level]
+            occupancy = occ_var.get()
+            per_level_loading[level] = {
+                "occupancy": occupancy,
+                "imposed_kn_m2": table[occupancy],
+                "slab_thickness_mm": int(self.ml_slab_vars[level].get()),
+            }
         self.data["ml_storey_heights"] = {lv: self.ml_storey_vars[lv].get() for lv in levels[1:]}
         self.data["ml_cumulative_heights"] = cumulative
+        self.data["ml_per_level_loading"] = per_level_loading
         self.show_step(4)
 
     # ================= STEP 4: Generate GA =================
@@ -1107,11 +1201,24 @@ class Wizard(tk.Tk):
         def work():
             import ga_dxf_parser as gp
             dxf_path = INPUT_DIR / self.data["dxf_filename"]
-            return gp.parse_multilevel_ga(
+            result = gp.parse_multilevel_ga(
                 str(dxf_path), storey_heights_m=self.data["ml_cumulative_heights"],
+                per_level_loading=self.data.get("ml_per_level_loading"),
             )
+            sketch_path = None
+            if "model" in result:
+                try:
+                    from ml_sketch import render_multilevel_sketch
+                    sketch_path = render_multilevel_sketch(
+                        result["levels"], result["model"], self.data["ml_cumulative_heights"],
+                        result.get("void_centroids", {}), str(OUTPUT_JSON_DIR / "_ml_sketch.png"),
+                    )
+                except Exception:
+                    pass  # the sketch is a nice-to-have; a failure here shouldn't block the model
+            return result, sketch_path
 
-        def on_success(result):
+        def on_success(payload):
+            result, sketch_path = payload
             self.data["ml_result"] = result
             for w in self.ml_build_frame.winfo_children():
                 w.destroy()
@@ -1147,12 +1254,23 @@ class Wizard(tk.Tk):
                          wraplength=680, justify="left", padx=12, pady=10, text=msg).pack(
                     anchor="w", pady=15, fill="x")
 
+            if sketch_path:
+                tk.Label(self.ml_build_frame, text="Detected panels (shaded) and any voids (crossed "
+                                                     "out) -- check these against the real drawing:",
+                         font=FONT_SMALL, bg=COLOR_BG, fg=COLOR_MUTED).pack(anchor="w", pady=(10, 4))
+                try:
+                    self._ml_sketch_photo = tk.PhotoImage(file=sketch_path)
+                    tk.Label(self.ml_build_frame, image=self._ml_sketch_photo, bg=COLOR_BG).pack(anchor="w")
+                except Exception:
+                    pass
+
             tk.Label(self.ml_build_frame, font=FONT_SMALL, fg=COLOR_MUTED, bg=COLOR_BG,
                      wraplength=680, justify="left",
                      text="Standard initial member sizes were used (225x225 columns, 225x450 "
-                          "beams, 225x300 roof beams, 150mm slabs, C25/30 concrete) -- these are "
-                          "a starting point for analysis, not a final design.").pack(
-                anchor="w", pady=(10, 0))
+                          "beams, 225x300 roof beams, C25/30 concrete). Loading is real, from your "
+                          "Step 3 answers: dead = self-weight + finishes, imposed = per-floor "
+                          "occupancy, combined per BS 8110 cl 2.4.3 -- these sizes are a starting "
+                          "point for analysis, not a final design.").pack(anchor="w", pady=(10, 0))
             self.next_btn.config(state="normal")
 
         def on_error(exc, tb):

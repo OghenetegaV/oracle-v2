@@ -1,9 +1,31 @@
-# oracle_log.py
-"""Shared event log for Oracle. Every Claude call retry/failure and every
-error shown to the user gets appended here (full detail, not a short
-preview), so both the user and the Ask Claude chat -- which reads this
-file's tail as troubleshooting context -- have something real to diagnose
-from after the fact."""
+"""Oracle — Event Log
+
+Purpose:
+    Append-only text log (logs/oracle.log) plus a helper returning its tail.
+
+Role in Oracle:
+    Legacy diagnostics layer. Claude retries/failures and errors shown to the engineer are
+    written here, and the wizard's chat reads the tail as troubleshooting context.
+
+Dependencies:
+    config (LOGS_DIR).
+
+Consumers:
+    claude_ga_generator, design_module, oracle_wizard.
+
+Status:
+    Legacy / Transitional.
+
+Migration:
+    Retained; can later be replaced by the standard logging module behind the same two functions.
+
+Details (original module notes, retained):
+    Shared event log for Oracle. Every Claude call retry/failure and every
+    error shown to the user gets appended here (full detail, not a short
+    preview), so both the user and the Ask Claude chat -- which reads this
+    file's tail as troubleshooting context -- have something real to diagnose
+    from after the fact.
+"""
 
 from datetime import datetime
 

@@ -1,0 +1,227 @@
+{
+  "columns": [
+    {
+      "name": "C1",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "name": "C2",
+      "x": 5,
+      "y": 0
+    },
+    {
+      "name": "C3",
+      "x": 10,
+      "y": 0
+    },
+    {
+      "name": "C4",
+      "x": 0,
+      "y": 5
+    },
+    {
+      "name": "C5",
+      "x": 5,
+      "y": 5
+    },
+    {
+      "name": "C6",
+      "x": 10,
+      "y": 5
+    },
+    {
+      "name": "C7",
+      "x": 0,
+      "y": 10
+    },
+    {
+      "name": "C8",
+      "x": 5,
+      "y": 10
+    },
+    {
+      "name": "C9",
+      "x": 10,
+      "y": 10
+    }
+  ],
+  "beams": [
+    {
+      "name": "B1",
+      "start_col": "C1",
+      "end_col": "C2",
+      "depth_mm": 450
+    },
+    {
+      "name": "B2",
+      "start_col": "C2",
+      "end_col": "C3",
+      "depth_mm": 450
+    },
+    {
+      "name": "B3",
+      "start_col": "C4",
+      "end_col": "C5",
+      "depth_mm": 450
+    },
+    {
+      "name": "B4",
+      "start_col": "C5",
+      "end_col": "C6",
+      "depth_mm": 450
+    },
+    {
+      "name": "B5",
+      "start_col": "C7",
+      "end_col": "C8",
+      "depth_mm": 450
+    },
+    {
+      "name": "B6",
+      "start_col": "C8",
+      "end_col": "C9",
+      "depth_mm": 450
+    },
+    {
+      "name": "B7",
+      "start_col": "C1",
+      "end_col": "C4",
+      "depth_mm": 450
+    },
+    {
+      "name": "B8",
+      "start_col": "C4",
+      "end_col": "C7",
+      "depth_mm": 450
+    },
+    {
+      "name": "B9",
+      "start_col": "C2",
+      "end_col": "C5",
+      "depth_mm": 450
+    },
+    {
+      "name": "B10",
+      "start_col": "C5",
+      "end_col": "C8",
+      "depth_mm": 450
+    },
+    {
+      "name": "B11",
+      "start_col": "C3",
+      "end_col": "C6",
+      "depth_mm": 450
+    },
+    {
+      "name": "B12",
+      "start_col": "C6",
+      "end_col": "C9",
+      "depth_mm": 450
+    }
+  ],
+  "slabs": [
+    {
+      "name": "S1",
+      "thickness_mm": 175,
+      "vertices": [
+        [
+          0,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          5,
+          5
+        ],
+        [
+          0,
+          5
+        ]
+      ]
+    },
+    {
+      "name": "S2",
+      "thickness_mm": 175,
+      "vertices": [
+        [
+          5,
+          0
+        ],
+        [
+          10,
+          0
+        ],
+        [
+          10,
+          5
+        ],
+        [
+          5,
+          5
+        ]
+      ]
+    },
+    {
+      "name": "S3",
+      "thickness_mm": 175,
+      "vertices": [
+        [
+          0,
+          5
+        ],
+        [
+          5,
+          5
+        ],
+        [
+          5,
+          10
+        ],
+        [
+          0,
+          10
+        ]
+      ]
+    },
+    {
+      "name": "S4",
+      "thickness_mm": 175,
+      "vertices": [
+        [
+          5,
+          5
+        ],
+        [
+          10,
+          5
+        ],
+        [
+          10,
+          10
+        ],
+        [
+          5,
+          10
+        ]
+      ]
+    }
+  ],
+  "dimensions": {
+    "overall_x_m": 10.0,
+    "overall_y_m": 10.0,
+    "bay_spacing_x_m": [
+      5.0,
+      5.0
+    ],
+    "bay_spacing_y_m": [
+      5.0,
+      5.0
+    ],
+    "storey_height_m": 3.0
+  },
+  "summary": "9 columns at 5m grid intersections (3x3 layout), aligned with architectural walls and the central partition wall along x=5. 12 beams (450mm depth) form a continuous grid connecting all columns along both gridlines, avoiding wall intersections except at bearing points. 4 slab panels (5m x 5m each, 175mm thick) span the bays, suitable for the given span range. Structure follows 10m x 10m footprint with a central wall/gridline at x=5 dividing it into two equal zones."
+}

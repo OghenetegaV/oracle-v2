@@ -1,0 +1,156 @@
+{
+  "node_forces": {
+    "C1": {
+      "node": 1,
+      "column_name": "C1",
+      "fx": 8.22,
+      "fy": 124.0,
+      "fz": 8.22,
+      "mx": 8.13,
+      "my": 0.0,
+      "mz": -8.13
+    },
+    "C2": {
+      "node": 2,
+      "column_name": "C2",
+      "fx": 0.0,
+      "fy": 240.54,
+      "fz": 17.43,
+      "mx": 17.1,
+      "my": 0.0,
+      "mz": 0.0
+    },
+    "C3": {
+      "node": 3,
+      "column_name": "C3",
+      "fx": -8.22,
+      "fy": 124.0,
+      "fz": 8.22,
+      "mx": 8.13,
+      "my": 0.0,
+      "mz": 8.13
+    },
+    "C4": {
+      "node": 4,
+      "column_name": "C4",
+      "fx": 17.43,
+      "fy": 240.54,
+      "fz": 0.0,
+      "mx": 0.0,
+      "my": 0.0,
+      "mz": -17.1
+    },
+    "C5": {
+      "node": 5,
+      "column_name": "C5",
+      "fx": 0.0,
+      "fy": 338.86,
+      "fz": 0.0,
+      "mx": 0.0,
+      "my": 0.0,
+      "mz": 0.0
+    },
+    "C6": {
+      "node": 6,
+      "column_name": "C6",
+      "fx": -17.43,
+      "fy": 240.54,
+      "fz": 0.0,
+      "mx": 0.0,
+      "my": 0.0,
+      "mz": 17.1
+    },
+    "C7": {
+      "node": 7,
+      "column_name": "C7",
+      "fx": 8.22,
+      "fy": 124.0,
+      "fz": -8.22,
+      "mx": -8.13,
+      "my": 0.0,
+      "mz": -8.13
+    },
+    "C8": {
+      "node": 8,
+      "column_name": "C8",
+      "fx": 0.0,
+      "fy": 240.54,
+      "fz": -17.43,
+      "mx": -17.1,
+      "my": 0.0,
+      "mz": 0.0
+    },
+    "C9": {
+      "node": 9,
+      "column_name": "C9",
+      "fx": -8.22,
+      "fy": 124.0,
+      "fz": -8.22,
+      "mx": -8.13,
+      "my": 0.0,
+      "mz": 8.13
+    }
+  },
+  "member_forces": {
+    "B1": {
+      "member": 10,
+      "beam_name": "B1",
+      "span_m": 5.0,
+      "depth_mm": 450,
+      "max_axial_kn": 8.29,
+      "max_shear_kn": 87.75,
+      "max_moment_knm": 83.67
+    },
+    "B2": {
+      "member": 11,
+      "beam_name": "B2",
+      "span_m": 5.0,
+      "depth_mm": 450,
+      "max_axial_kn": 8.29,
+      "max_shear_kn": 87.75,
+      "max_moment_knm": 83.67
+    },
+    "B3": {
+      "member": 12,
+      "beam_name": "B3",
+      "span_m": 5.0,
+      "depth_mm": 450,
+      "max_axial_kn": 17.29,
+      "max_shear_kn": 84.72,
+      "max_moment_knm": 78.85
+    },
+    "B4": {
+      "member": 13,
+      "beam_name": "B4",
+      "span_m": 5.0,
+      "depth_mm": 450,
+      "max_axial_kn": 17.29,
+      "max_shear_kn": 84.72,
+      "max_moment_knm": 78.85
+    },
+    "B5": {
+      "member": 14,
+      "beam_name": "B5",
+      "span_m": 5.0,
+      "depth_mm": 450,
+      "max_axial_kn": 8.29,
+      "max_shear_kn": 87.75,
+      "max_moment_knm": 83.67
+    },
+    "B6": {
+      "member": 15,
+      "beam_name": "B6",
+      "span_m": 5.0,
+      "depth_mm": 450,
+      "max_axial_kn": 8.29,
+      "max_shear_kn": 87.75,
+      "max_moment_knm": 83.67
+    }
+  },
+  "loading_basis": {
+    "standard": "BS 6399-1:1996 / BS 8110-1:1997 cl 2.4.3",
+    "factored_uls_udl_kn_m2": 11.98,
+    "source": "Real STAAD.Pro V8i SS6 analysis via OpenSTAAD COM API (not mock)"
+  },
+  "analysis_notes": "Real STAAD.Pro V8i SS6 analysis: slab load applied as MEMBER LOAD UDL on beams (BS 6399-1/BS 8110), column reactions and beam forces both emerge from actual frame analysis, parsed from oracle_model.ANL."
+}

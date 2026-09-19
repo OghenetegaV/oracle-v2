@@ -1,0 +1,154 @@
+{
+  "columns": [
+    {
+      "name": "C1",
+      "material": "concrete",
+      "load_kn": 124.0,
+      "section": "230x230",
+      "bars": "4-16mm"
+    },
+    {
+      "name": "C2",
+      "material": "concrete",
+      "load_kn": 240.5,
+      "section": "230x230",
+      "bars": "4-16mm"
+    },
+    {
+      "name": "C3",
+      "material": "concrete",
+      "load_kn": 124.0,
+      "section": "230x230",
+      "bars": "4-16mm"
+    },
+    {
+      "name": "C4",
+      "material": "concrete",
+      "load_kn": 240.5,
+      "section": "230x230",
+      "bars": "4-16mm"
+    },
+    {
+      "name": "C5",
+      "material": "concrete",
+      "load_kn": 338.9,
+      "section": "250x250",
+      "bars": "4-20mm"
+    },
+    {
+      "name": "C6",
+      "material": "concrete",
+      "load_kn": 240.5,
+      "section": "230x230",
+      "bars": "4-16mm"
+    },
+    {
+      "name": "C7",
+      "material": "concrete",
+      "load_kn": 124.0,
+      "section": "230x230",
+      "bars": "4-16mm"
+    },
+    {
+      "name": "C8",
+      "material": "concrete",
+      "load_kn": 240.5,
+      "section": "230x230",
+      "bars": "4-16mm"
+    },
+    {
+      "name": "C9",
+      "material": "concrete",
+      "load_kn": 124.0,
+      "section": "230x230",
+      "bars": "4-16mm"
+    }
+  ],
+  "beams": [
+    {
+      "name": "B1",
+      "material": "concrete",
+      "section": "250x450",
+      "main_bars": "3-20mm",
+      "stirrups": "8mm@300mm"
+    },
+    {
+      "name": "B2",
+      "material": "concrete",
+      "section": "250x450",
+      "main_bars": "3-20mm",
+      "stirrups": "8mm@300mm"
+    },
+    {
+      "name": "B3",
+      "material": "concrete",
+      "section": "250x450",
+      "main_bars": "3-16mm",
+      "stirrups": "8mm@300mm"
+    },
+    {
+      "name": "B4",
+      "material": "concrete",
+      "section": "250x450",
+      "main_bars": "3-16mm",
+      "stirrups": "8mm@300mm"
+    },
+    {
+      "name": "B5",
+      "material": "concrete",
+      "section": "250x450",
+      "main_bars": "3-20mm",
+      "stirrups": "8mm@300mm"
+    },
+    {
+      "name": "B6",
+      "material": "concrete",
+      "section": "250x450",
+      "main_bars": "3-20mm",
+      "stirrups": "8mm@300mm"
+    },
+    {
+      "name": "B7",
+      "material": "concrete",
+      "section": "250x450",
+      "main_bars": "3-20mm",
+      "stirrups": "8mm@300mm"
+    },
+    {
+      "name": "B8",
+      "material": "concrete",
+      "section": "250x450",
+      "main_bars": "3-20mm",
+      "stirrups": "8mm@300mm"
+    },
+    {
+      "name": "B9",
+      "material": "concrete",
+      "section": "250x450",
+      "main_bars": "3-16mm",
+      "stirrups": "8mm@300mm"
+    },
+    {
+      "name": "B10",
+      "material": "concrete",
+      "section": "250x450",
+      "main_bars": "3-16mm",
+      "stirrups": "8mm@300mm"
+    },
+    {
+      "name": "B11",
+      "material": "concrete",
+      "section": "250x450",
+      "main_bars": "3-20mm",
+      "stirrups": "8mm@300mm"
+    },
+    {
+      "name": "B12",
+      "material": "concrete",
+      "section": "250x450",
+      "main_bars": "3-20mm",
+      "stirrups": "8mm@300mm"
+    }
+  ],
+  "summary": "Columns designed as short braced C25/30 members (fixed base, 3.0 m clear height, slenderness < limits per BS 8110 cl 3.8.1.3) using the simplified axial capacity expression N = 0.4 fcu Ac + 0.75 fy Asc (cl 3.8.4.3). All factored axial loads (124\u2013339 kN) are well below the capacity of a 230\u00d7230 mm section with minimum longitudinal steel (~0.8% Ac, 4T16), so this minimum practical section governs for C1\u2013C4 and C6\u2013C9; C5 (highest load, 338.9 kN) is upsized to 250\u00d7250 mm with 4T20 for robustness and cover requirements (40 mm main cover, 50 mm assumed at base construction joint). Beams are 250\u00d7450 mm C25/30 sections designed for the stated ULS moments and shears (loads per BS 6399-1 UDL 11.98 kN/m\u00b2 factored 1.4Gk+1.6Qk). Flexural design used the BS 8110 singly-reinforced rectangular stress-block method (K = M/bd\u00b2fcu, z = d[0.5+\u221a(0.25\u2212K/0.9)] \u22640.95d) with d \u2248 410 mm (25 mm cover, 12 mm link, 20 mm bar assumed): M = 83.7 kNm beams (B1,B2,B5,B6 and mirrored B7,B8,B11,B12) require As\u2248635 mm\u00b2 \u2192 3T20 (942 mm\u00b2); M = 78.8 kNm beams (B3,B4,B9,B10) require As\u2248593 mm\u00b2 \u2192 3T16 (603 mm\u00b2). Shear design (cl 3.4.5) gave v \u2248 0.83\u20130.86 N/mm\u00b2 against vc \u2248 0.55\u20130.60 N/mm\u00b2 for the provided steel ratio; since v\u2212vc <0.4 N/mm\u00b2, nominal/minimum shear links govern: 8 mm mild/high-yield 2-leg links at 300 mm c/c (\u22640.75d) throughout. All beams and columns detailed with high-yield T-bars (fy = 410 N/mm\u00b2, BS 4449) and covers of 25 mm (beams) / 40 mm (columns, 50 mm at base) per BS 8110-1:1997."
+}

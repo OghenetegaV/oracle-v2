@@ -1,9 +1,30 @@
-# ga_sketch.py
-"""Renders a simple schematic plan sketch of a generated GA (general
-arrangement) as a PNG, so the engineer can see the layout at a glance instead
-of only reading column/beam counts. Uses matplotlib's non-interactive Agg
-backend explicitly -- this is called from inside oracle_wizard.py's Tkinter
-process, so it must never touch a GUI backend."""
+"""Oracle — Layout Sketch Renderer (AI layout path)
+
+Purpose:
+    Renders a PNG plan sketch of the AI-generated single-floor layout.
+
+Role in Oracle:
+    Legacy preview for the single-floor path. ml_sketch.py is the multi-floor equivalent.
+
+Dependencies:
+    matplotlib (Agg backend).
+
+Consumers:
+    oracle_wizard.
+
+Status:
+    Legacy / Transitional.
+
+Migration:
+    Retained; a candidate to merge with ml_sketch.py once both read the core model.
+
+Details (original module notes, retained):
+    Renders a simple schematic plan sketch of a generated GA (general
+    arrangement) as a PNG, so the engineer can see the layout at a glance instead
+    of only reading column/beam counts. Uses matplotlib's non-interactive Agg
+    backend explicitly -- this is called from inside oracle_wizard.py's Tkinter
+    process, so it must never touch a GUI backend.
+"""
 
 import matplotlib
 matplotlib.use("Agg")

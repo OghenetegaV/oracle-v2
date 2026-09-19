@@ -1,7 +1,29 @@
-# oracle_pipeline.py
-"""
-Oracle: AI-Powered Structural Design Automation
-Complete pipeline: DXF → GA → Analysis → Design → Output
+"""Oracle — Command-Line Pipeline (older)
+
+Purpose:
+    Runs DXF parse, AI layout, analysis and design in sequence from the command line and
+    writes a summary report.
+
+Role in Oracle:
+    Older, non-GUI driver of the same phases as the wizard. Nothing imports it and the launcher
+    does not use it. It hard-codes test_floor.dxf, a project summary and a fixed timestamp.
+
+Dependencies:
+    dxf_parser, claude_ga_generator, staad_mock, staad_v8i_integration, design_module, config.
+
+Consumers:
+    None found; run manually as a script.
+
+Status:
+    Legacy / Superseded by the wizard. Flagged for human review.
+
+Migration:
+    Kept until the owner confirms it is no longer used; could be reduced to a thin
+    non-interactive runner over the V2 core later.
+
+Details (original module notes, retained):
+    Oracle: AI-Powered Structural Design Automation
+    Complete pipeline: DXF → GA → Analysis → Design → Output
 """
 
 import json

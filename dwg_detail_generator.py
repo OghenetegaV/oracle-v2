@@ -1,13 +1,33 @@
-# dwg_detail_generator.py
-"""
-Oracle Phase 5b: Complete Detail Drawing (DWG)
+"""Oracle — Detail Drawing Generator
 
-Builds one drawing containing the structural plan (columns, beams, grid,
-bar marks) plus the Column Reinforcement Schedule and Beam Bar Bending
-Schedule tables, using ezdxf (no live AutoCAD session needed -- see
-lisp_detail_generator.py's LISP route for that alternative). Saves as DXF,
-then converts to a real DWG via the ODA File Converter already detected in
-config.py, since ezdxf itself only writes DXF.
+Purpose:
+    Draws the structural plan, column schedule and beam BBS tables into a DXF with ezdxf and
+    converts it to DWG with the ODA File Converter (output_dwg/).
+
+Role in Oracle:
+    Legacy drawing output layer. No live AutoCAD session is needed.
+
+Dependencies:
+    ezdxf; ODA File Converter (optional, for DWG); lisp_detail_generator; config.
+
+Consumers:
+    oracle_wizard.
+
+Status:
+    Legacy / Transitional.
+
+Migration:
+    Retained. To be rebuilt as a drawing adapter that takes oracle.core objects.
+
+Details (original module notes, retained):
+    Oracle Phase 5b: Complete Detail Drawing (DWG)
+
+    Builds one drawing containing the structural plan (columns, beams, grid,
+    bar marks) plus the Column Reinforcement Schedule and Beam Bar Bending
+    Schedule tables, using ezdxf (no live AutoCAD session needed -- see
+    lisp_detail_generator.py's LISP route for that alternative). Saves as DXF,
+    then converts to a real DWG via the ODA File Converter already detected in
+    config.py, since ezdxf itself only writes DXF.
 """
 
 import shutil

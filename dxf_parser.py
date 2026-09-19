@@ -1,4 +1,28 @@
-# dxf_parser.py
+"""Oracle — Architectural DXF Parser (single floor)
+
+Purpose:
+    Reads an architectural DXF using fixed layer names (Walls: LINE/LWPOLYLINE, Gridlines: LINE,
+    Columns: CIRCLE) and returns plain dicts, optionally saved as output_json/<name>_parsed.json.
+
+Role in Oracle:
+    Legacy CAD-interpretation layer for the single-floor path, where Claude then proposes the
+    structural layout. It is a different job from ga_dxf_parser.py, which reads an already
+    designed multi-floor structural GA; both are currently in use.
+
+Dependencies:
+    ezdxf; config (INPUT_DIR, OUTPUT_JSON_DIR).
+
+Consumers:
+    oracle_wizard (architectural drawings), oracle_pipeline.
+
+Status:
+    Legacy / Transitional.
+
+Migration:
+    Retained until a DXF adapter produces oracle.core.BuildingModel and has regression tests.
+    Then it can be wrapped by, or folded into, that adapter.
+"""
+
 import json
 from pathlib import Path
 import ezdxf

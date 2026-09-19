@@ -1,37 +1,61 @@
-# ga_dxf_parser.py
-"""
-Multi-level GA DXF -> STAAD.Pro command file parser.
+"""Oracle — Multi-Floor GA DXF Parser
 
-Implements a "detect the pattern, don't hard-code the levels" workflow:
-given a DXF containing an ALREADY-DESIGNED multi-floor structural GA (real
-beam/column layers per floor, e.g. "F.F BEAMS" / "COLUMN G-1" / "R. BEAMS"),
-extract joint coordinates and member connectivity directly from the DXF
-geometry, infer slab panels from enclosed beam-bounded regions (excluding
-any VOID-layer areas), and produce a ready-to-run STAAD SPACE command file.
+Purpose:
+    Parses an already-designed multi-floor structural general-arrangement DXF: detects levels
+    from layer names, extracts beams, columns and VOID regions, builds joints and members,
+    infers slab panels, and generates a STAAD.Pro command file.
 
-This is a DIFFERENT path through Oracle from claude_ga_generator.py: that
-module has Claude DESIGN a new layout from a simple architectural drawing.
-This module converts an ALREADY-DESIGNED multi-floor GA directly into an
-analysis model -- no AI layout design involved, no Claude API call at all.
+Role in Oracle:
+    Legacy CAD interpretation layer for the multi-floor path. Produces its own dict/tuple model
+    and ParseIssue objects, not oracle.core objects. During V2 migration it is expected to feed
+    oracle.core.BuildingModel through an adapter.
 
-Known scope/limitations (also surfaced per-project in validate()'s warnings):
-- Member cross-sections use the standard sizes in DEFAULT_SIZES uniformly.
-  Real GA drawings commonly draw beams as bare centerlines with no width
-  geometry and uniform lineweight/color (true of the reference file this
-  was built against), leaving no reliable secondary signal to detect
-  non-standard depths from geometry alone -- override sections by hand
-  where the drawing shows something deeper (e.g. a transfer beam).
-- Slab panel detection uses a rectilinear grid-cell test (candidate bays
-  from the level's unique beam X/Y coordinates, kept only if all 4 edges
-  are covered by real beam segments), not a fully general planar-
-  subdivision face finder. This covers the overwhelmingly common case of
-  an orthogonal structural grid; a bay with a non-rectangular (angled)
-  boundary will not be detected as a single panel.
-- Beam-layer-to-level-position matching uses the layer name's first
-  letter against common ordinal abbreviations (G/F/S/T/Fo/Fi/Si/Se/E/N/Te),
-  with "R..." always placed last. An unrecognised scheme falls back to the
-  layer table's file order and is flagged in validate() rather than
-  silently trusted.
+Dependencies:
+    ezdxf (imported inside parse_multilevel_ga); shapely (slab-panel detection).
+
+Consumers:
+    oracle_wizard (multi-floor import, model build and analysis steps).
+
+Status:
+    Legacy / Transitional.
+
+Migration:
+    Retained during V2 migration. Do not replace until the new DXF adapter and regression tests
+    are proven.
+
+Details (original module notes, retained):
+    Multi-level GA DXF -> STAAD.Pro command file parser.
+
+    Implements a "detect the pattern, don't hard-code the levels" workflow:
+    given a DXF containing an ALREADY-DESIGNED multi-floor structural GA (real
+    beam/column layers per floor, e.g. "F.F BEAMS" / "COLUMN G-1" / "R. BEAMS"),
+    extract joint coordinates and member connectivity directly from the DXF
+    geometry, infer slab panels from enclosed beam-bounded regions (excluding
+    any VOID-layer areas), and produce a ready-to-run STAAD SPACE command file.
+
+    This is a DIFFERENT path through Oracle from claude_ga_generator.py: that
+    module has Claude DESIGN a new layout from a simple architectural drawing.
+    This module converts an ALREADY-DESIGNED multi-floor GA directly into an
+    analysis model -- no AI layout design involved, no Claude API call at all.
+
+    Known scope/limitations (also surfaced per-project in validate()'s warnings):
+    - Member cross-sections use the standard sizes in DEFAULT_SIZES uniformly.
+      Real GA drawings commonly draw beams as bare centerlines with no width
+      geometry and uniform lineweight/color (true of the reference file this
+      was built against), leaving no reliable secondary signal to detect
+      non-standard depths from geometry alone -- override sections by hand
+      where the drawing shows something deeper (e.g. a transfer beam).
+    - Slab panel detection uses a rectilinear grid-cell test (candidate bays
+      from the level's unique beam X/Y coordinates, kept only if all 4 edges
+      are covered by real beam segments), not a fully general planar-
+      subdivision face finder. This covers the overwhelmingly common case of
+      an orthogonal structural grid; a bay with a non-rectangular (angled)
+      boundary will not be detected as a single panel.
+    - Beam-layer-to-level-position matching uses the layer name's first
+      letter against common ordinal abbreviations (G/F/S/T/Fo/Fi/Si/Se/E/N/Te),
+      with "R..." always placed last. An unrecognised scheme falls back to the
+      layer table's file order and is flagged in validate() rather than
+      silently trusted.
 """
 
 import re
@@ -39,6 +63,17 @@ from itertools import combinations
 
 MM_PER_M = 1000.0
 JOINT_TOLERANCE_MM = 1.0  # per spec: dedupe coincident points within ~1mm
+# A column's plan position comes from its cross-section outline's centroid, while a
+# beam's joint comes from its drawn endpoint -- in a real, not-perfectly-drafted GA
+# these are frequently a few mm to a few cm apart even though they're meant to be the
+# same physical connection. JOINT_TOLERANCE_MM is deliberately tight (an exact-match
+# dedup for genuinely coincident points); this is the separate, looser tolerance used
+# only when placing a column joint, to snap it onto a nearby beam-derived joint instead
+# of creating a spurious near-duplicate node. Too large risks merging two genuinely
+# distinct, closely-spaced columns (e.g. either side of a stair core) into one node --
+# 75mm comfortably covers realistic drafting slop while staying well under any normal
+# column-to-column spacing.
+COLUMN_SNAP_TOL_MM = 75.0
 
 ORDINAL_FIRST_LETTER_RANK = {
     "G": 0, "F": 1, "S": 2, "T": 3, "N": 9,  # N only matches here if not "Ninth" ambiguity; see note below
@@ -56,6 +91,13 @@ DEFAULT_SIZES = {
 }
 SLAB_THICKNESS_MM = 150
 MATERIAL = {"fcu_n_mm2": 25, "unit_weight_kn_m3": 24, "fy_n_mm2": 410}
+
+# Fallback per-level loading, used only for any level the caller doesn't supply an
+# explicit value for in per_level_loading (see parse_multilevel_ga) -- real loads
+# should come from the engineer (occupancy per floor, actual slab thickness), not
+# these placeholders. Matches the office/general-use default used elsewhere in Oracle.
+DEFAULT_IMPOSED_KN_M2 = 2.5
+DEFAULT_FINISHES_KN_M2 = 1.5
 
 
 class ParseIssue:
@@ -259,9 +301,105 @@ class JointRegistry:
         self._coords.append((x_mm / MM_PER_M, y_mm / MM_PER_M, z_mm / MM_PER_M))
         return joint_no
 
+    def find_nearby(self, x_mm, y_mm, z_mm, tol_mm):
+        """Nearest existing joint at the same elevation within tol_mm (plan distance
+        only), or None. Elevation (y) is matched exactly -- it comes from the same
+        storey-height value for every joint at a level, not imprecise CAD geometry,
+        so there's no reason to fuzz it the way x/z need to be."""
+        y_m = y_mm / MM_PER_M
+        tol_m = tol_mm / MM_PER_M
+        best_no, best_dist = None, tol_m
+        for i, (x_m, y2_m, z_m) in enumerate(self._coords):
+            if y2_m != y_m:
+                continue
+            dist = ((x_m - x_mm / MM_PER_M) ** 2 + (z_m - z_mm / MM_PER_M) ** 2) ** 0.5
+            if dist <= best_dist:
+                best_no, best_dist = i + 1, dist
+        return best_no
+
+    def get_or_create_near(self, x_mm, y_mm, z_mm, snap_tol_mm):
+        """Like get_or_create, but first tries to reuse a nearby existing joint
+        (within snap_tol_mm) rather than only an exact match -- returns
+        (joint_no, snapped_distance_mm_or_None), the distance only set when an
+        existing joint was reused instead of an exact/new one, for reporting."""
+        exact = self._by_key.get(self._key(x_mm, y_mm, z_mm))
+        if exact is not None:
+            return exact, None
+        nearby = self.find_nearby(x_mm, y_mm, z_mm, snap_tol_mm)
+        if nearby is not None:
+            nx, ny, nz = self._coords[nearby - 1]
+            dist_mm = ((nx * MM_PER_M - x_mm) ** 2 + (nz * MM_PER_M - z_mm) ** 2) ** 0.5
+            return nearby, dist_mm
+        return self.get_or_create(x_mm, y_mm, z_mm), None
+
     def coordinates(self):
         """{joint_no: (x_m, y_m, z_m)}, 1-indexed to match assignment order."""
         return {i + 1: c for i, c in enumerate(self._coords)}
+
+
+def _bbox_min(points):
+    return min(p[0] for p in points), min(p[1] for p in points)
+
+
+def compute_floor_alignment(doc, levels, beam_layer_by_level, column_layer_by_boundary):
+    """Real GA sheets commonly draw every floor's plan at its own location on the
+    sheet -- side by side, for presentation -- even though every floor shares the
+    same real-world X/Z footprint (that's the entire point of a structural grid:
+    column line "2" is the same X position on every floor). Taking each layer's
+    raw DXF coordinates at face value, as the rest of this module otherwise does,
+    scatters the floors across the sheet's X/Y instead of stacking them at a
+    shared footprint with only Y (elevation) differing.
+
+    This detects that per-layer offset and corrects for it: take one level's beam
+    layer as the reference footprint, then for every other beam layer and every
+    column layer, match its own geometry's bounding-box min-corner to the
+    reference's min-corner and record the (dx, dy) translation needed. This
+    assumes each floor's drawn footprint shares a common reference corner --
+    true whenever the same grid intersection (e.g. gridline 1/A) is that floor's
+    plan origin, which is the normal case for a regular structural grid. A floor
+    genuinely stepped back or extended at that corner (not just elsewhere) will
+    misalign -- there is no grid-label text matching here, only bounding-box
+    geometry, so this is flagged as a warning rather than applied silently.
+
+    Returns ({"beam": {level: (dx, dy)}, "column": {(lo, hi): (dx, dy)}}, issues)."""
+    msp = doc.modelspace()
+    issues = []
+    reference_level = levels[1] if len(levels) > 1 else None
+    ref_layer = beam_layer_by_level.get(reference_level) if reference_level else None
+    ref_points = [p for seg in extract_beam_segments_mm(msp, ref_layer) for p in seg] if ref_layer else []
+    if not ref_points:
+        return {"beam": {}, "column": {}}, issues
+    ref_min = _bbox_min(ref_points)
+
+    beam_offsets = {reference_level: (0.0, 0.0)}
+    for level, layer in beam_layer_by_level.items():
+        if level == reference_level:
+            continue
+        pts = [p for seg in extract_beam_segments_mm(msp, layer) for p in seg]
+        if not pts:
+            continue
+        min_x, min_y = _bbox_min(pts)
+        dx, dy = ref_min[0] - min_x, ref_min[1] - min_y
+        beam_offsets[level] = (dx, dy)
+        if abs(dx) > 1.0 or abs(dy) > 1.0:  # >1mm: floors were genuinely offset, not already stacked
+            issues.append(ParseIssue(
+                "warning",
+                f"Floor \"{level}\" was drawn offset from floor \"{reference_level}\" on the sheet by "
+                f"({dx/MM_PER_M:.2f}m, {dy/MM_PER_M:.2f}m) in plan -- aligned by matching each floor's "
+                f"bounding-box corner. Verify this against the real grid if the floors' footprints "
+                f"aren't identical (e.g. a stepped-back roof)."
+            ))
+
+    column_offsets = {}
+    for boundary, layer in column_layer_by_boundary.items():
+        pts = extract_column_positions_mm(msp, layer)
+        if not pts:
+            continue
+        min_x, min_y = _bbox_min(pts)
+        dx, dy = ref_min[0] - min_x, ref_min[1] - min_y
+        column_offsets[boundary] = (dx, dy)
+
+    return {"beam": beam_offsets, "column": column_offsets}, issues
 
 
 def build_model(doc, levels, beam_layer_by_level, column_layer_by_boundary, storey_heights_m):
@@ -270,27 +408,41 @@ def build_model(doc, levels, beam_layer_by_level, column_layer_by_boundary, stor
     Returns a dict: joints, members (list of (no, j1, j2, kind, level, size_key)),
     slab panels per level, and any ParseIssues raised along the way (column
     positions with no matching joint at one of their two boundary elevations,
-    etc.) -- these are added to whatever issue list the caller passes in."""
+    floor-alignment offsets applied, etc.) -- these are added to whatever issue
+    list the caller passes in."""
     msp = doc.modelspace()
     joints = JointRegistry()
-    issues = []
+    offsets, issues = compute_floor_alignment(doc, levels, beam_layer_by_level, column_layer_by_boundary)
 
     # ---- beams: one member per polyline segment, all endpoints at that level's Y ----
+    # A duplicate member (same joint pair, same kind) means two entities in the source
+    # drawing produced the identical line -- a retraced beam, or an overlapping
+    # LINE + LWPOLYLINE on the same layer, both observed in real files. Deduped by
+    # (kind, {j1,j2}) as each member is added, for any drawing, not tuned to one file.
     members = []
     member_no = 1
+    seen_member_keys = set()
+    duplicate_member_count = 0
     level_beam_segments_m = {}  # level -> [((x1,z1),(x2,z2))] in metres, for slab detection
     for level in levels[1:]:
         layer = beam_layer_by_level.get(level)
         if not layer:
             continue
         y_m = storey_heights_m[level]
+        dx, dy = offsets["beam"].get(level, (0.0, 0.0))
         segs_mm = extract_beam_segments_mm(msp, layer)
         segs_m = []
         for (x1, z1), (x2, z2) in segs_mm:
+            x1, z1, x2, z2 = x1 + dx, z1 + dy, x2 + dx, z2 + dy
             j1 = joints.get_or_create(x1, y_m * MM_PER_M, z1)
             j2 = joints.get_or_create(x2, y_m * MM_PER_M, z2)
             if j1 == j2:
                 continue
+            key = ("beam", frozenset((j1, j2)))
+            if key in seen_member_keys:
+                duplicate_member_count += 1
+                continue
+            seen_member_keys.add(key)
             size_key = "roof_beam_mm" if level == levels[-1] else "beam_mm"
             members.append((member_no, j1, j2, "beam", level, size_key))
             member_no += 1
@@ -298,14 +450,45 @@ def build_model(doc, levels, beam_layer_by_level, column_layer_by_boundary, stor
         level_beam_segments_m[level] = segs_m
 
     # ---- columns: match plan positions across the two layers bounding each range ----
+    # Columns snap onto a nearby existing (beam-derived) joint within COLUMN_SNAP_TOL_MM
+    # instead of always creating one from the column outline's own centroid -- see
+    # JointRegistry.get_or_create_near and the constant's docstring for why.
+    snapped_column_joints = []  # (distance_mm,) for the summary issue below
     for (lo, hi), layer in column_layer_by_boundary.items():
         y_lo, y_hi = storey_heights_m[lo], storey_heights_m[hi]
+        dx, dy = offsets["column"].get((lo, hi), (0.0, 0.0))
         positions_mm = extract_column_positions_mm(msp, layer)
         for x_mm, z_mm in positions_mm:
-            j_lo = joints.get_or_create(x_mm, y_lo * MM_PER_M, z_mm)
-            j_hi = joints.get_or_create(x_mm, y_hi * MM_PER_M, z_mm)
+            x_mm, z_mm = x_mm + dx, z_mm + dy
+            j_lo, dist_lo = joints.get_or_create_near(x_mm, y_lo * MM_PER_M, z_mm, COLUMN_SNAP_TOL_MM)
+            j_hi, dist_hi = joints.get_or_create_near(x_mm, y_hi * MM_PER_M, z_mm, COLUMN_SNAP_TOL_MM)
+            for d in (dist_lo, dist_hi):
+                if d is not None:
+                    snapped_column_joints.append(d)
+            if j_lo == j_hi:
+                continue
+            key = ("column", frozenset((j_lo, j_hi)))
+            if key in seen_member_keys:
+                duplicate_member_count += 1
+                continue
+            seen_member_keys.add(key)
             members.append((member_no, j_lo, j_hi, "column", (lo, hi), "column_mm"))
             member_no += 1
+
+    if duplicate_member_count:
+        issues.append(ParseIssue(
+            "warning",
+            f"{duplicate_member_count} duplicate member(s) (same two joints as an existing member, "
+            "typically a retraced or overlapping line in the source drawing) were detected and dropped."
+        ))
+    if snapped_column_joints:
+        issues.append(ParseIssue(
+            "warning",
+            f"{len(snapped_column_joints)} column endpoint(s) were snapped onto a nearby beam joint "
+            f"instead of their own drawn centroid (up to {max(snapped_column_joints):.0f}mm away, within "
+            f"the {COLUMN_SNAP_TOL_MM:.0f}mm tolerance) -- normal drafting imprecision, but check these "
+            "line up with the real grid if that maximum looks large."
+        ))
 
     # ---- slab panels: rectilinear grid-cell test per level ----
     slab_panels = {}
@@ -467,26 +650,61 @@ def _fmt(n):
     return f"{n:.4f}".rstrip("0").rstrip(".") if "." in f"{n:.4f}" else f"{n:.4f}"
 
 
-def generate_staad_file(levels, model, storey_heights_m, project_title="Oracle imported GA"):
+def _wrap_staad_list(numbers, suffix="", max_len=64):
+    """STAAD's command-file input has a per-line length limit; a line past it gets
+    auto-split by STAAD.Pro itself, and STAAD's own on-screen warning for that
+    ("this may not work for all commands") is not theoretical -- observed in
+    practice to corrupt an ELEMENT PROPERTY list, silently dropping the
+    trailing THICKNESS keyword and producing "INVALID INPUT FOR ELEMENT
+    THICKNESS" on an otherwise-correct model. Wrap long id-lists ourselves,
+    using STAAD's own explicit line-continuation syntax (a trailing ' -'), so
+    the split point is always a safe one and keeps a trailing suffix (a
+    keyword like "THICKNESS 0.15") on the final line, never orphaned."""
+    tokens = [str(n) for n in numbers]
+    lines, current, current_len = [], [], 0
+    for tok in tokens:
+        add_len = len(tok) + 1
+        if current and current_len + add_len > max_len:
+            lines.append(" ".join(current) + " -")
+            current, current_len = [], 0
+        current.append(tok)
+        current_len += add_len
+    if suffix:
+        current.append(suffix)
+    lines.append(" ".join(current))
+    return lines
+
+
+def _resolve_level_loading(levels, per_level_loading):
+    """Fill in DEFAULT_* for any level (or any field) the caller didn't supply --
+    see parse_multilevel_ga's docstring for the expected per_level_loading shape."""
+    per_level_loading = per_level_loading or {}
+    resolved = {}
+    for level in levels[1:]:
+        given = per_level_loading.get(level, {})
+        resolved[level] = {
+            "imposed_kn_m2": given.get("imposed_kn_m2", DEFAULT_IMPOSED_KN_M2),
+            "finishes_kn_m2": given.get("finishes_kn_m2", DEFAULT_FINISHES_KN_M2),
+            "slab_thickness_mm": given.get("slab_thickness_mm", SLAB_THICKNESS_MM),
+        }
+    return resolved
+
+
+def generate_staad_file(levels, model, storey_heights_m, per_level_loading=None, project_title="Oracle imported GA"):
     joints = model["joints"]
-    coords = joints.coordinates()
+    loading = _resolve_level_loading(levels, per_level_loading)
     members = model["members"]
     slab_panels = model["slab_panels"]
 
-    lines = ["STAAD SPACE", f"START JOB INFORMATION", f"ENGINEER DATE {__import__('datetime').date.today().isoformat()}",
-              "END JOB INFORMATION", "UNIT METER KN", "JOINT COORDINATES"]
-    for no in sorted(coords):
-        x, y, z = coords[no]
-        lines.append(f"{no} {_fmt(x)} {_fmt(y)} {_fmt(z)}")
-
-    lines.append("MEMBER INCIDENCES")
-    for no, j1, j2, kind, level, size_key in members:
-        lines.append(f"{no} {j1} {j2}")
-
+    # Build ELEMENT INCIDENCES (and, via joints.get_or_create(), any new panel-corner
+    # joints that weren't already an existing beam/column endpoint) BEFORE reading out
+    # the joint coordinates below -- get_or_create() mutates the registry, so reading
+    # coordinates() first would miss those new joints and reference them in
+    # ELEMENT INCIDENCES without ever declaring them in JOINT COORDINATES (the exact
+    # "JOINT NO ... DOES NOT EXIST" error STAAD raises when that happens).
     element_start = ((model["next_member_no"] // 1000) + 1) * 1000
     element_no = element_start
     element_lines = []
-    element_thickness_group = []
     level_element_ids = {}
     for level in levels[1:]:
         ids = []
@@ -499,6 +717,19 @@ def generate_staad_file(levels, model, storey_heights_m, project_title="Oracle i
             ids.append(element_no)
             element_no += 1
         level_element_ids[level] = ids
+
+    coords = joints.coordinates()  # read only after every get_or_create() above has run
+
+    lines = ["STAAD SPACE", f"START JOB INFORMATION", f"ENGINEER DATE {__import__('datetime').date.today().isoformat()}",
+              "END JOB INFORMATION", "UNIT METER KN", "JOINT COORDINATES"]
+    for no in sorted(coords):
+        x, y, z = coords[no]
+        lines.append(f"{no} {_fmt(x)} {_fmt(y)} {_fmt(z)}")
+
+    lines.append("MEMBER INCIDENCES")
+    for no, j1, j2, kind, level, size_key in members:
+        lines.append(f"{no} {j1} {j2}")
+
     if element_lines:
         lines.append("ELEMENT INCIDENCES SHELL")
         lines.extend(element_lines)
@@ -524,8 +755,12 @@ def generate_staad_file(levels, model, storey_heights_m, project_title="Oracle i
 
     if element_lines:
         lines.append("ELEMENT PROPERTY")
-        all_ids = [i for ids in level_element_ids.values() for i in ids]
-        lines.append(f"{' '.join(str(i) for i in all_ids)} THICKNESS {_fmt(SLAB_THICKNESS_MM / 1000)}")
+        for level in levels[1:]:
+            ids = level_element_ids.get(level, [])
+            if not ids:
+                continue
+            thickness_m = loading[level]["slab_thickness_mm"] / MM_PER_M
+            lines.extend(_wrap_staad_list(ids, f"THICKNESS {_fmt(thickness_m)}"))
 
     lines.append("CONSTANTS")
     lines.append("MATERIAL CONCRETE ALL")
@@ -537,10 +772,47 @@ def generate_staad_file(levels, model, storey_heights_m, project_title="Oracle i
     } - {None})
     lines.append("SUPPORTS")
     if base_joints:
-        joint_list = " ".join(str(j) for j in base_joints)
-        lines.append(f"{joint_list} PINNED")
+        lines.extend(_wrap_staad_list(base_joints, "PINNED"))
 
-    lines += ["LOAD 1 SELFWEIGHT", "SELFWEIGHT Y -1", "PERFORM ANALYSIS", "FINISH"]
+    # Two real load cases (dead, imposed) plus a proper ULS combination, rather than a
+    # single pre-factored case -- this lets the engineer inspect unfactored dead/live
+    # reactions separately (needed for serviceability checks), not just the combined
+    # ULS result. Slab dead/imposed load is applied as a uniform pressure directly on
+    # the plate elements (global Y, so it acts downward regardless of each plate's own
+    # local-axis/node-winding orientation) -- STAAD distributes it to the supporting
+    # beams through the plates' own stiffness, which is more realistic than an
+    # estimated tributary-width UDL. Member self-weight (beams/columns) AND each
+    # plate's own concrete self-weight are both already covered by SELFWEIGHT, since
+    # STAAD derives element self-weight from THICKNESS x DENSITY automatically -- only
+    # finishes (screed, services, etc, not part of the plate's own material) needs an
+    # explicit dead-load pressure alongside it.
+    lines.append("LOAD 1 DEAD (finishes, BS 6399-1)")
+    lines.append("SELFWEIGHT Y -1")
+    dead_lines = []
+    for level in levels[1:]:
+        ids = level_element_ids.get(level, [])
+        finishes = loading[level]["finishes_kn_m2"]
+        if ids and finishes:
+            dead_lines.extend(_wrap_staad_list(ids, f"PRESSURE GY {-finishes:.3f}"))
+    if dead_lines:
+        lines.append("ELEMENT LOAD")
+        lines.extend(dead_lines)
+
+    lines.append("LOAD 2 IMPOSED (BS 6399-1, per floor occupancy)")
+    live_lines = []
+    for level in levels[1:]:
+        ids = level_element_ids.get(level, [])
+        imposed = loading[level]["imposed_kn_m2"]
+        if ids and imposed:
+            live_lines.extend(_wrap_staad_list(ids, f"PRESSURE GY {-imposed:.3f}"))
+    if live_lines:
+        lines.append("ELEMENT LOAD")
+        lines.extend(live_lines)
+
+    lines.append("LOAD COMBINATION 3 ULS 1.4DL+1.6LL (BS 8110-1 cl 2.4.3)")
+    lines.append("1 1.4 2 1.6")
+
+    lines += ["PERFORM ANALYSIS", "FINISH"]
 
     return "\n".join(lines) + "\n"
 
@@ -583,11 +855,19 @@ def validate(levels, model, storey_heights_m, beam_layer_by_level):
 
 # ---------------------------------------------------------------- orchestration
 
-def parse_multilevel_ga(dxf_path, storey_heights_m=None, project_title="Oracle imported GA"):
+def parse_multilevel_ga(dxf_path, storey_heights_m=None, per_level_loading=None,
+                         project_title="Oracle imported GA"):
     """storey_heights_m: {level_tag: cumulative_elevation_m}. If None, only
     level detection runs (use this first to find out what levels/heights to
     ask the engineer for); pass it back in once you have real values to get
     the full model + STAAD file.
+
+    per_level_loading: {level_tag: {"imposed_kn_m2": float, "finishes_kn_m2": float,
+    "slab_thickness_mm": float}}, one entry per non-ground level -- this is the
+    engineer's real input (occupancy per floor, actual slab thickness), not something
+    derivable from the drawing. Any level or field left out falls back to
+    DEFAULT_IMPOSED_KN_M2 / DEFAULT_FINISHES_KN_M2 / SLAB_THICKNESS_MM, which is fine
+    for a first look but should be confirmed before the analysis is relied on.
 
     Returns a dict: levels, beam_layer_by_level, column_layer_by_boundary,
     issues, and (only once storey_heights_m is supplied) model, std_text."""
@@ -620,11 +900,13 @@ def parse_multilevel_ga(dxf_path, storey_heights_m=None, project_title="Oracle i
         ]
     excluded = exclude_void_panels(model["slab_panels"], void_centroids)
     if excluded:
-        model["issues"].append(ParseIssue("warning" if False else "warning",
-                                            f"{excluded} candidate slab panel(s) excluded due to VOID markers."))
+        model["issues"].append(ParseIssue(
+            "warning", f"{excluded} candidate slab panel(s) excluded due to VOID markers."))
 
     all_issues = validate(levels, model, storey_heights_m, beam_layer_by_level)
     result["model"] = model
     result["issues"] = issues + [i for i in all_issues if i not in issues]
-    result["std_text"] = generate_staad_file(levels, model, storey_heights_m, project_title)
+    result["std_text"] = generate_staad_file(levels, model, storey_heights_m, per_level_loading, project_title)
+    result["loading"] = _resolve_level_loading(levels, per_level_loading)
+    result["void_centroids"] = void_centroids
     return result

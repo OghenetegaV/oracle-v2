@@ -1,4 +1,26 @@
-# staad_mock.py
+"""Oracle — Mock Structural Analysis
+
+Purpose:
+    Tributary-area estimate of column reactions and beam forces, with BS 6399-1 loads combined
+    per BS 8110-1 cl 2.4.3, written in the same JSON shape as the real STAAD results.
+
+Role in Oracle:
+    Legacy fallback analysis, used when STAAD.Pro or the 32-bit interpreter is unavailable.
+    The result is an estimate, not a frame analysis.
+
+Dependencies:
+    config; company_standards.json.
+
+Consumers:
+    oracle_wizard, oracle_pipeline.
+
+Status:
+    Legacy / Transitional.
+
+Migration:
+    Retained as the no-STAAD fallback; a candidate test double for the analysis adapter.
+"""
+
 import json
 from pathlib import Path
 from config import OUTPUT_JSON_DIR, PROJECT_ROOT

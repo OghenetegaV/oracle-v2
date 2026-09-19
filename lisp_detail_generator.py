@@ -1,10 +1,32 @@
-# lisp_detail_generator.py
-"""
-Oracle Phase 5: LISP Detail Generation
-Converts Phase 4 element design (design_output.json) into AutoCAD LISP
-bar-marking annotations plus bar bending schedules (BBS), following the
-company's detailing standards (company_standards.json) -- BS 8110 / BS 4466
-/ BS 8666 / BS 4449, matching the layout of Compiled_Structural_Drawings.pdf.
+"""Oracle — Reinforcement Schedules, BBS and LISP Output
+
+Purpose:
+    Turns design_output.json into column/beam/steel schedules, a bar bending schedule with bar
+    marks, and an AutoCAD LISP file (output_lisp/), following company_standards.json.
+
+Role in Oracle:
+    Legacy reinforcement/BBS layer. Its schedule and BBS builders are also the data source for
+    dwg_detail_generator.
+
+Dependencies:
+    config; company_standards.json; design_output.json and ga_output.json.
+
+Consumers:
+    dwg_detail_generator (imports its builders), oracle_wizard.
+
+Status:
+    Legacy / Transitional.
+
+Migration:
+    Retained. Reads free-text bar strings (e.g. '4-16mm'); BS 8666 bar shapes are not modelled.
+    To be moved onto structured reinforcement data later.
+
+Details (original module notes, retained):
+    Oracle Phase 5: LISP Detail Generation
+    Converts Phase 4 element design (design_output.json) into AutoCAD LISP
+    bar-marking annotations plus bar bending schedules (BBS), following the
+    company's detailing standards (company_standards.json) -- BS 8110 / BS 4466
+    / BS 8666 / BS 4449, matching the layout of Compiled_Structural_Drawings.pdf.
 """
 
 import json

@@ -1,4 +1,25 @@
-# test_conversion.py
+"""Oracle — DXF Load Smoke Script
+
+Purpose:
+    Opens input_dwgs/test_floor.dxf with ezdxf and prints its layers.
+
+Role in Oracle:
+    Manual smoke script, not an automated test: it has no assertions. The automated suite lives
+    in tests/.
+
+Dependencies:
+    ezdxf; config.
+
+Consumers:
+    None (manual run only).
+
+Status:
+    Test / manual smoke script (legacy).
+
+Migration:
+    Retained; superseded by real fixture-based tests once the DXF adapter exists.
+"""
+
 from pathlib import Path
 import ezdxf
 from config import INPUT_DIR, OUTPUT_DXF_DIR

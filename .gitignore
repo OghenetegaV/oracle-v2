@@ -9,3 +9,7 @@ output_lisp/
 logs/
 input_dwgs/*.dwl
 input_dwgs/*.dwl2
+.env.*
+!.env.example
+*.tmp
+.pytest_cache/

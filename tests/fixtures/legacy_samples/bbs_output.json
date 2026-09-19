@@ -1,0 +1,328 @@
+{
+  "generated": "2026-09-08T18:29:22",
+  "standards_reference": "BS 8110-1:1997 / BS 4466 & BS 8666 / BS 4449",
+  "column_schedule": [
+    {
+      "column": "C1",
+      "section": "230x230",
+      "location": "external_column",
+      "cover_mm": 40,
+      "bm_rows": [
+        {
+          "bm": "01",
+          "size": 16,
+          "no_of_bars": 4,
+          "no_thus": 1,
+          "total_no": 4,
+          "length_mm": 3000,
+          "form": "STRAIGHT",
+          "mark_no": 1,
+          "bar_mark": "4Y16-1-(C1)",
+          "unit_weight_kg_m": 1.578,
+          "total_length_m": 12.0,
+          "total_weight_kg": 18.936
+        }
+      ]
+    },
+    {
+      "column": "C2",
+      "section": "230x230",
+      "location": "external_column",
+      "cover_mm": 40,
+      "bm_rows": [
+        {
+          "bm": "01",
+          "size": 16,
+          "no_of_bars": 4,
+          "no_thus": 1,
+          "total_no": 4,
+          "length_mm": 3000,
+          "form": "STRAIGHT",
+          "mark_no": 1,
+          "bar_mark": "4Y16-1-(C2)",
+          "unit_weight_kg_m": 1.578,
+          "total_length_m": 12.0,
+          "total_weight_kg": 18.936
+        }
+      ]
+    },
+    {
+      "column": "C3",
+      "section": "230x230",
+      "location": "external_column",
+      "cover_mm": 40,
+      "bm_rows": [
+        {
+          "bm": "01",
+          "size": 16,
+          "no_of_bars": 4,
+          "no_thus": 1,
+          "total_no": 4,
+          "length_mm": 3000,
+          "form": "STRAIGHT",
+          "mark_no": 1,
+          "bar_mark": "4Y16-1-(C3)",
+          "unit_weight_kg_m": 1.578,
+          "total_length_m": 12.0,
+          "total_weight_kg": 18.936
+        }
+      ]
+    },
+    {
+      "column": "C4",
+      "section": "230x230",
+      "location": "external_column",
+      "cover_mm": 40,
+      "bm_rows": [
+        {
+          "bm": "01",
+          "size": 16,
+          "no_of_bars": 4,
+          "no_thus": 1,
+          "total_no": 4,
+          "length_mm": 3000,
+          "form": "STRAIGHT",
+          "mark_no": 1,
+          "bar_mark": "4Y16-1-(C4)",
+          "unit_weight_kg_m": 1.578,
+          "total_length_m": 12.0,
+          "total_weight_kg": 18.936
+        }
+      ]
+    },
+    {
+      "column": "C5",
+      "section": "250x250",
+      "location": "internal_column",
+      "cover_mm": 40,
+      "bm_rows": [
+        {
+          "bm": "01",
+          "size": 20,
+          "no_of_bars": 4,
+          "no_thus": 1,
+          "total_no": 4,
+          "length_mm": 3000,
+          "form": "STRAIGHT",
+          "mark_no": 1,
+          "bar_mark": "4Y20-1-(C5)",
+          "unit_weight_kg_m": 2.47,
+          "total_length_m": 12.0,
+          "total_weight_kg": 29.64
+        }
+      ]
+    },
+    {
+      "column": "C6",
+      "section": "230x230",
+      "location": "external_column",
+      "cover_mm": 40,
+      "bm_rows": [
+        {
+          "bm": "01",
+          "size": 16,
+          "no_of_bars": 4,
+          "no_thus": 1,
+          "total_no": 4,
+          "length_mm": 3000,
+          "form": "STRAIGHT",
+          "mark_no": 1,
+          "bar_mark": "4Y16-1-(C6)",
+          "unit_weight_kg_m": 1.578,
+          "total_length_m": 12.0,
+          "total_weight_kg": 18.936
+        }
+      ]
+    },
+    {
+      "column": "C7",
+      "section": "230x230",
+      "location": "external_column",
+      "cover_mm": 40,
+      "bm_rows": [
+        {
+          "bm": "01",
+          "size": 16,
+          "no_of_bars": 4,
+          "no_thus": 1,
+          "total_no": 4,
+          "length_mm": 3000,
+          "form": "STRAIGHT",
+          "mark_no": 1,
+          "bar_mark": "4Y16-1-(C7)",
+          "unit_weight_kg_m": 1.578,
+          "total_length_m": 12.0,
+          "total_weight_kg": 18.936
+        }
+      ]
+    },
+    {
+      "column": "C8",
+      "section": "230x230",
+      "location": "external_column",
+      "cover_mm": 40,
+      "bm_rows": [
+        {
+          "bm": "01",
+          "size": 16,
+          "no_of_bars": 4,
+          "no_thus": 1,
+          "total_no": 4,
+          "length_mm": 3000,
+          "form": "STRAIGHT",
+          "mark_no": 1,
+          "bar_mark": "4Y16-1-(C8)",
+          "unit_weight_kg_m": 1.578,
+          "total_length_m": 12.0,
+          "total_weight_kg": 18.936
+        }
+      ]
+    },
+    {
+      "column": "C9",
+      "section": "230x230",
+      "location": "external_column",
+      "cover_mm": 40,
+      "bm_rows": [
+        {
+          "bm": "01",
+          "size": 16,
+          "no_of_bars": 4,
+          "no_thus": 1,
+          "total_no": 4,
+          "length_mm": 3000,
+          "form": "STRAIGHT",
+          "mark_no": 1,
+          "bar_mark": "4Y16-1-(C9)",
+          "unit_weight_kg_m": 1.578,
+          "total_length_m": 12.0,
+          "total_weight_kg": 18.936
+        }
+      ]
+    }
+  ],
+  "column_totals_by_diameter": {
+    "Y16": {
+      "length_m": 96.0,
+      "weight_kg": 151.488
+    },
+    "Y20": {
+      "length_m": 12.0,
+      "weight_kg": 29.64
+    }
+  },
+  "beam_schedule_rows": [
+    {
+      "no": 1,
+      "size": 20,
+      "qua": 8,
+      "length_mm": 5000,
+      "form": "STRAIGHT-TOP",
+      "members": [
+        "B1T",
+        "B2T",
+        "B5T",
+        "B6T",
+        "B7T",
+        "B8T",
+        "B11T",
+        "B12T"
+      ],
+      "unit_weight_kg_m": 2.47,
+      "total_length_m": 40.0,
+      "total_weight_kg": 98.8
+    },
+    {
+      "no": 2,
+      "size": 20,
+      "qua": 16,
+      "length_mm": 5000,
+      "form": "STRAIGHT-BOTTOM",
+      "members": [
+        "B1B",
+        "B2B",
+        "B5B",
+        "B6B",
+        "B7B",
+        "B8B",
+        "B11B",
+        "B12B"
+      ],
+      "unit_weight_kg_m": 2.47,
+      "total_length_m": 80.0,
+      "total_weight_kg": 197.6
+    },
+    {
+      "no": 3,
+      "size": 8,
+      "qua": 204,
+      "length_mm": 1344,
+      "form": "LINK",
+      "members": [
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "B10",
+        "B11",
+        "B12"
+      ],
+      "unit_weight_kg_m": 0.395,
+      "total_length_m": 274.176,
+      "total_weight_kg": 108.3
+    },
+    {
+      "no": 4,
+      "size": 16,
+      "qua": 4,
+      "length_mm": 5000,
+      "form": "STRAIGHT-TOP",
+      "members": [
+        "B3T",
+        "B4T",
+        "B9T",
+        "B10T"
+      ],
+      "unit_weight_kg_m": 1.578,
+      "total_length_m": 20.0,
+      "total_weight_kg": 31.56
+    },
+    {
+      "no": 5,
+      "size": 16,
+      "qua": 8,
+      "length_mm": 5000,
+      "form": "STRAIGHT-BOTTOM",
+      "members": [
+        "B3B",
+        "B4B",
+        "B9B",
+        "B10B"
+      ],
+      "unit_weight_kg_m": 1.578,
+      "total_length_m": 40.0,
+      "total_weight_kg": 63.12
+    }
+  ],
+  "beam_totals_by_diameter": {
+    "Y20": {
+      "length_m": 120.0,
+      "weight_kg": 296.4
+    },
+    "Y8": {
+      "length_m": 274.176,
+      "weight_kg": 108.3
+    },
+    "Y16": {
+      "length_m": 60.0,
+      "weight_kg": 94.68
+    }
+  },
+  "grand_total_steel_weight_kg": 680.508,
+  "steel_schedule": []
+}

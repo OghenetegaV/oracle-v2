@@ -1,4 +1,27 @@
-# staad_integration.py
+"""Oracle — OpenSTAADpy Integration (older, unused)
+
+Purpose:
+    Earlier attempt at building and analysing a STAAD model through the openstaadpy package
+    (os_analytical), writing results to JSON.
+
+Role in Oracle:
+    Superseded by staad_v8i_integration.py (COM route verified against STAAD.Pro V8i SS6).
+    Nothing in the repository imports this file, and openstaadpy is not in requirements.txt.
+
+Dependencies:
+    openstaadpy (optional, imported at run time); config.
+
+Consumers:
+    None found by import search; run only manually via __main__.
+
+Status:
+    Legacy / Superseded. Flagged for human review before any removal.
+
+Migration:
+    Kept until the owner confirms the openstaadpy route is abandoned; see
+    docs/REPOSITORY_INVENTORY.md.
+"""
+
 import json
 from pathlib import Path
 from config import OUTPUT_JSON_DIR

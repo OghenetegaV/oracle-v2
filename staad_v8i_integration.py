@@ -1,40 +1,64 @@
-# staad_v8i_integration.py
-"""
-Oracle Phase 3 (real): STAAD.Pro V8i SS6 integration via the OpenSTAAD COM API.
+"""Oracle — STAAD.Pro V8i Integration
 
-MUST run under a 32-bit Python interpreter -- STAAD.Pro V8i SS6's openstaad.dll
-is 32-bit only. oracle_pipeline.py shells out to one (see STAAD_PYTHON32 below);
-called directly, just run it with that interpreter.
+Purpose:
+    Builds STAAD geometry through the OpenSTAAD COM API, patches units, supports, properties
+    and loads into the .STD text, runs the analysis in a live STAAD.Pro session and parses the
+    .ANL report into staad_results.json.
 
-What this does, and why it's built this way:
-  1. Builds real model geometry (nodes, members) via OpenSTAAD.CreateInputOutsideSTAAD
-     (ICreateInputOutsideSTAAD) -- verified reliable via COM.
-  2. Patches units, supports, member properties, and loads directly into the
-     resulting .STD file as STAAD command-language text, instead of using the
-     equivalent COM calls (SetInputUnits / multi-node AssignSupportToNode /
-     CreateNodalLoad). Those were tested and found to be either silently
-     unreliable (only the first of several AssignSupportToNode calls actually
-     stuck) or outright unstable (CreateNodalLoad segfaults on several
-     nLoadItem values). Since .STD is a plain-text command file, writing the
-     documented STAAD syntax directly is both safe and standard practice.
-  3. Applies the slab load as a real MEMBER LOAD UDL on each beam (BS 6399-1
-     dead + imposed, combined per BS 8110 cl 2.4.3 as 1.4Gk+1.6Qk), so beam
-     moments/shears come from actual frame analysis under a real distributed
-     load -- not from a pre-computed point load at the columns. Column axial
-     reactions emerge from the analysis itself.
-  4. Opens the model in a live, already-running STAAD.Pro session and runs the
-     analysis (OpenSTAAD.CreateInputOutsideSTAAD.RunSTAADEngine was tested and
-     does not reliably produce output standalone -- the GUI-session path is
-     the one that's actually been verified to work end-to-end).
-  5. Polls OpenSTAAD.Output.AreResultsAvailable (reliable) rather than trusting
-     GetSTAADFile()/Analyze()'s return values (both proved unreliable as state
-     indicators in this version).
-  6. Parses the real .ANL text report STAAD writes and returns results in the
-     same shape as staad_mock.py's output, so design_module.py needs no changes.
+Role in Oracle:
+    Legacy analysis integration and the only real (non-estimate) analysis path. Each COM step
+    runs in its own 32-bit Python subprocess because openstaad.dll is 32-bit only.
 
-Precondition: STAAD.Pro V8i SS6 must already be running (any file/no file open
-is fine). If it isn't, this raises RuntimeError so the caller can fall back to
-staad_mock.py.
+Dependencies:
+    pywin32 and STAAD.Pro V8i SS6 (both only at run time); a 32-bit Python at STAAD_PYTHON32;
+    company_standards.json.
+
+Consumers:
+    oracle_wizard, oracle_pipeline.
+
+Status:
+    Legacy / Integration.
+
+Migration:
+    Retained. The working COM findings recorded below must be preserved. To be wrapped as an
+    analysis adapter that reads oracle.core objects and returns results into the project.
+
+Details (original module notes, retained):
+    Oracle Phase 3 (real): STAAD.Pro V8i SS6 integration via the OpenSTAAD COM API.
+
+    MUST run under a 32-bit Python interpreter -- STAAD.Pro V8i SS6's openstaad.dll
+    is 32-bit only. oracle_pipeline.py shells out to one (see STAAD_PYTHON32 below);
+    called directly, just run it with that interpreter.
+
+    What this does, and why it's built this way:
+      1. Builds real model geometry (nodes, members) via OpenSTAAD.CreateInputOutsideSTAAD
+         (ICreateInputOutsideSTAAD) -- verified reliable via COM.
+      2. Patches units, supports, member properties, and loads directly into the
+         resulting .STD file as STAAD command-language text, instead of using the
+         equivalent COM calls (SetInputUnits / multi-node AssignSupportToNode /
+         CreateNodalLoad). Those were tested and found to be either silently
+         unreliable (only the first of several AssignSupportToNode calls actually
+         stuck) or outright unstable (CreateNodalLoad segfaults on several
+         nLoadItem values). Since .STD is a plain-text command file, writing the
+         documented STAAD syntax directly is both safe and standard practice.
+      3. Applies the slab load as a real MEMBER LOAD UDL on each beam (BS 6399-1
+         dead + imposed, combined per BS 8110 cl 2.4.3 as 1.4Gk+1.6Qk), so beam
+         moments/shears come from actual frame analysis under a real distributed
+         load -- not from a pre-computed point load at the columns. Column axial
+         reactions emerge from the analysis itself.
+      4. Opens the model in a live, already-running STAAD.Pro session and runs the
+         analysis (OpenSTAAD.CreateInputOutsideSTAAD.RunSTAADEngine was tested and
+         does not reliably produce output standalone -- the GUI-session path is
+         the one that's actually been verified to work end-to-end).
+      5. Polls OpenSTAAD.Output.AreResultsAvailable (reliable) rather than trusting
+         GetSTAADFile()/Analyze()'s return values (both proved unreliable as state
+         indicators in this version).
+      6. Parses the real .ANL text report STAAD writes and returns results in the
+         same shape as staad_mock.py's output, so design_module.py needs no changes.
+
+    Precondition: STAAD.Pro V8i SS6 must already be running (any file/no file open
+    is fine). If it isn't, this raises RuntimeError so the caller can fall back to
+    staad_mock.py.
 """
 
 import json

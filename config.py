@@ -1,4 +1,30 @@
-# config.py
+"""Oracle — Shared Configuration
+
+Purpose:
+    Central filesystem paths, output-folder creation, ODA File Converter discovery and
+    Anthropic API-key handling (environment variable, else the local .env file).
+    Importing it has side effects: it creates input_dwgs/, output_dxf/, output_json/ and logs/
+    if missing and prints the ODA status.
+
+Role in Oracle:
+    Configuration layer of the existing (legacy) Oracle workflow. Not used by oracle.core.
+
+Dependencies:
+    Standard library only.
+
+Consumers:
+    claude_ga_generator, design_module, dwg_detail_generator, dxf_parser, generate_test_dwg,
+    lisp_detail_generator, oracle_log, oracle_pipeline, oracle_wizard, staad_integration,
+    staad_mock, test_conversion.
+
+Status:
+    Legacy / Transitional.
+
+Migration:
+    Retained. Path and secret handling should move to a dedicated application-settings layer
+    later. The .env file holds a real credential: it is gitignored and must never be committed.
+"""
+
 import os
 from pathlib import Path
 

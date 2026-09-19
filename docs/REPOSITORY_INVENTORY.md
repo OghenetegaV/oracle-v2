@@ -1,0 +1,172 @@
+# Repository Inventory
+
+Produced by a repository audit before any cleanup. "Used By" is taken from an AST import search of
+every root module plus reads of the code and docs, not from filenames. Two kinds of removal were
+made: Python caches and generated runtime files. No source file was deleted.
+
+Git state when audited: every file below except those marked *untracked* is tracked. Everything under
+`output_*/` and `logs/` was already gitignored and untracked, so it was not recoverable from Git; it was
+backed up before removal (see section 4).
+
+Actions: RETAIN, MOVE, REMOVE, GITIGNORE, REVIEW (kept, needs a human decision).
+
+## 1. Source and configuration files
+
+### V2 core (new, Phase 1)
+
+| File | Category | Purpose | Used By | Status | Action |
+|---|---|---|---|---|---|
+| `oracle/__init__.py` | Core | Package root; `__version__` | `oracle.core.project`, tests | Active | RETAIN |
+| `oracle/core/__init__.py` | Core | Public API re-exports | tests | Active | RETAIN |
+| `oracle/core/common.py` | Core | Errors, IDs, `Target`, validators, `SCHEMA_VERSION` | all other core modules | Active | RETAIN |
+| `oracle/core/geometry.py` | Core | `Point2D`, `Polygon2D` | `elements`, `building` | Active | RETAIN |
+| `oracle/core/elements.py` | Core | `Section` and the 7 element kinds | `building`, `design_basis` | Active | RETAIN |
+| `oracle/core/building.py` | Core | `Level`, `GridLine`, `Node`, `BuildingModel` | `project` | Active | RETAIN |
+| `oracle/core/design_basis.py` | Core | `DesignBasis` and loading/wind/seismic | `project` | Active | RETAIN |
+| `oracle/core/decisions.py` | Core | `EngineeringDecision` | `project` | Active | RETAIN |
+| `oracle/core/issues.py` | Core | `EngineeringIssue` | `project` | Active | RETAIN |
+| `oracle/core/project.py` | Core | `OracleProject` aggregate, JSON load/save | tests | Active | RETAIN |
+
+The inner `oracle/` directory is the Python package, not a copy of the repository.
+
+### Tests and docs (new)
+
+| File | Category | Purpose | Used By | Status | Action |
+|---|---|---|---|---|---|
+| `tests/__init__.py` | Test | Package marker for `unittest discover -t .` | test runner | Active | RETAIN |
+| `tests/fixtures.py` | Test | Shared model builders (3x3 columns, 2 storeys) | all core tests | Active | RETAIN |
+| `tests/test_project.py`, `test_building.py`, `test_elements.py`, `test_decisions_issues.py`, `test_design_basis.py` | Test | 67 unit tests of the core | test runner | Active | RETAIN |
+| `tests/test_generate_test_dwg.py` | Test | 3 regression tests: importing `generate_test_dwg` must not write a DXF; `main()` still builds the same drawing (uses a temp dir; the real fixture is snapshotted and restored) | test runner | Active | RETAIN |
+| `tests/fixtures/legacy_samples/*.json` (4) + `README.md` | Sample Input | Snapshots of legacy `ga_output`, `staad_results`, `design_output`, `bbs_output` (see its README) | nothing yet; reference for a future adapter | Reference | RETAIN (copied from `output_json/`) |
+| `docs/PHASE_1_ARCHITECTURE.md` | Documentation | Phase 1 architecture | readers | Active | RETAIN |
+| `docs/REPOSITORY_INVENTORY.md` | Documentation | This file | readers | Active | RETAIN |
+| `README.md` | Documentation | Developer overview and how to run/test | readers | New | RETAIN |
+| `.env.example` | Configuration | Placeholder variable name only, no value | humans | New | RETAIN |
+
+### Legacy application (root level, working)
+
+| File | Category | Purpose | Used By | Status | Action |
+|---|---|---|---|---|---|
+| `oracle_wizard.py` | Legacy | Tkinter 8-step workflow, the working application | `Launch Oracle.bat` | Primary app. Uncommitted local edits present | RETAIN |
+| `oracle_pipeline.py` | Legacy | Older CLI driver of the same phases | nothing imports it | Legacy, candidate for deprecation: superseded by the wizard; hard-coded `test_floor.dxf`, fixed report/timestamp. Owner decision: keep, do not modify | RETAIN |
+| `config.py` | Legacy / Configuration | Paths, ODA discovery, API-key handling; creates dirs on import | 12 modules | Active | RETAIN |
+| `oracle_log.py` | Legacy | Shared event log | `claude_ga_generator`, `design_module`, `oracle_wizard` | Active | RETAIN |
+| `dxf_parser.py` | Legacy | Single-floor architectural DXF parser | `oracle_wizard`, `oracle_pipeline` | Active | RETAIN |
+| `ga_dxf_parser.py` | Legacy | Multi-floor structural GA parser + STAAD file | `oracle_wizard` | Active. Uncommitted local edits present | RETAIN |
+| `claude_ga_generator.py` | Legacy | Claude proposes the single-floor layout | `oracle_wizard`, `oracle_pipeline` | Active | RETAIN |
+| `design_module.py` | Legacy | Claude sizes members/reinforcement | `oracle_wizard`, `oracle_pipeline` | Active | RETAIN |
+| `staad_v8i_integration.py` | Integration | Real STAAD.Pro V8i SS6 analysis via COM (32-bit subprocess steps) | `oracle_wizard`, `oracle_pipeline` | Active | RETAIN |
+| `staad_mock.py` | Legacy | Tributary-area analysis fallback | `oracle_wizard`, `oracle_pipeline` | Active | RETAIN |
+| `staad_integration.py` | Legacy | Older openstaadpy route | nothing | Legacy, candidate for deprecation: unreferenced; `openstaadpy` not in requirements. Owner decision: keep, do not modify | RETAIN |
+| `lisp_detail_generator.py` | Legacy | Schedules, BBS, LISP output | `dwg_detail_generator`, `oracle_wizard` | Active | RETAIN |
+| `dwg_detail_generator.py` | Legacy | ezdxf detail drawing + ODA to DWG | `oracle_wizard` | Active | RETAIN |
+| `ga_sketch.py` | Legacy | PNG sketch, AI single-floor layout | `oracle_wizard` | Active | RETAIN |
+| `ml_sketch.py` | Legacy | PNG sketch, multi-floor model | `oracle_wizard` | Active; part of the application. Still **untracked** in Git, so it must be `git add`ed with the next commit. Not ignored. Unchanged | RETAIN |
+| `generate_test_dwg.py` | Dev utility | Regenerates `input_dwgs/test_floor.dxf` when run as a script. Importing it now has no side effects (body moved into `main()` behind a `__main__` guard; behaviour when run is unchanged) | nothing; `tests/test_generate_test_dwg.py` | Dev utility | RETAIN (could move to `tools/` later) |
+| `test_conversion.py` | Test (manual smoke script) | Opens `test_floor.dxf`, prints layers; no assertions | nothing | Legacy smoke script | RETAIN |
+| `company_standards.json` | Configuration | Detailing standards, loads, cover, bar weights | `lisp_detail_generator`, `staad_mock`, `staad_v8i_integration`, `oracle_wizard` | Active | RETAIN |
+| `Launch Oracle.bat` | Legacy | `pythonw oracle_wizard.py` | user | Active | RETAIN |
+| `HOW TO USE.md` | Documentation | End-user guide | users | Active | RETAIN |
+| `requirements.txt` | Configuration | Runtime dependencies | pip | Active | RETAIN |
+| `.gitignore` | Configuration | Ignore rules | Git | Updated (see 5) | RETAIN |
+| `.env` | Local-only | Holds the local Anthropic credential | `config.py` at run time | Gitignored, never committed, never in history | RETAIN (untouched, contents not read into any document) |
+
+All legacy Python files now carry a module header (purpose, role, dependencies, consumers, status,
+migration). No code was changed; this was checked by comparing the syntax tree (excluding docstrings)
+of all 34 Python files before and after.
+
+## 2. Sample inputs (`input_dwgs/`, all tracked)
+
+| File | Size | Purpose | Used By | Action |
+|---|---|---|---|---|
+| `1st Flr, 2nd Flr and Roof GAs.dxf` | 1.1 MB | Real multi-floor structural GA; the fixture for `ga_dxf_parser` (4 levels, 213 joints, 129 members verified) | wizard multi-floor path | RETAIN |
+| `test_floor.dxf` | 78 KB | Synthetic single-floor architectural drawing | `dxf_parser`, `oracle_pipeline`, `test_conversion` | RETAIN. Working copy differs from Git only in `$TDUPDATE` timestamps |
+| `test_floor.dwg` | 21 KB | DWG version of the same drawing (presumably to test the ODA DWG-input path; not confirmed) | nothing in code | RETAIN |
+| `test_multiple_floors.dwg` | 25 KB | DWG multi-floor test drawing (presumably an ODA-input test; not confirmed) | nothing in code | RETAIN (owner decision; do not modify) |
+| `Truss.dxf` | 304 KB | A truss drawing; its parse produced 81 bytes of output, i.e. it does not fit either parser | nothing | RETAIN (owner decision; do not modify) |
+
+Nothing here was removed.
+
+## 3. Runtime and generated directories (all gitignored, untracked)
+
+Every one of these folders is created on demand by the code (`config.py` for `input_dwgs`, `output_dxf`,
+`output_json`, `logs`; `dwg_detail_generator`, `lisp_detail_generator` and `staad_v8i_integration` for
+`output_dwg`, `output_lisp`, `output_staad`), so a clean checkout works with them absent or empty.
+Their contents were cleared; the empty folders remain. Nothing is deleted from Git, because none of it was tracked.
+
+| Directory | Contents found | Verdict | Action |
+|---|---|---|---|
+| `output_json/` | 11 generated files: `ga_output`, `design_output`, `staad_results`, `bbs_output`, `staad_v8i_results`, `test_floor_parsed`, two near-empty `*_parsed.json`, `cortex_report.json` (pre-rename), two preview PNGs | Runtime output. The four contract files were kept as fixtures (see section 1); the rest are regenerable or obsolete | Contents removed; 4 files copied to `tests/fixtures/legacy_samples/` |
+| `output_dwg/` | 5 files: `cortex_detail_drawing` (.dwg/.dxf, pre-rename), `oracle_detail_drawing` (.dwg/.dxf), `preview.png` | Generated | Contents removed |
+| `output_lisp/` | `cortex_details.lsp` (pre-rename), `oracle_details.lsp` | Generated | Contents removed |
+| `output_staad/` | 72 files, see below | Generated STAAD run files plus one-off probe scripts | Contents removed |
+| `output_dxf/` | empty | Created by `config.py`; `OUTPUT_DXF_DIR` is imported only by `test_conversion.py` and no code writes there | Left in place, empty, by owner decision. Already gitignored |
+| `logs/` | `oracle.log` (16 KB) | Runtime log, recreated on first event | Contents removed |
+| `__pycache__/` (root, `oracle/`, `oracle/core/`, `tests/`) | `.pyc` caches | Never source | Removed (regenerate on run) |
+
+### `output_staad/` in detail (72 files, all removed)
+
+| Group | Files | Finding |
+|---|---|---|
+| Probe scripts `_probe*.py` (10) | COM API experiments on a 2-node model | One-off debugging. Hard-coded to the pre-rename `...\cortex\` folder. Their findings (which COM calls are unreliable) are recorded in the `staad_v8i_integration.py` docstring |
+| Test scripts `_test_*.py` (8) | Trial runs of the build/patch/subprocess steps | One-off debugging; same hard-coded paths |
+| `build_model.py`, `patch_model.py`, `parse_anl_results.py`, `check_results.py`, `get_reactions*.py` (9) | Earlier standalone versions of the geometry build, `.STD` patching, `.ANL` parsing and result reading | Superseded: the same functions exist in `staad_v8i_integration.py` (`build_geometry_com`, `patch_std_text`, `parse_reactions`, `parse_member_forces`); hard-coded to `...\cortex\` |
+| `_test2/3/4.std`, `cortex_model.*` (18), `oracle_model.*` (22), `ora9AF9.sbk`, `_member_map.json` | STAAD model, analysis and backup files | Generated by STAAD.Pro runs; `oracle_model.*` and `_member_map.json` are rewritten by every run |
+
+No file in the repository references any of these scripts.
+
+## 4. Backup of removed files
+
+Because the removed files were untracked, they cannot be restored from Git. All 91 were saved first to
+`../oracle-v2-removed-runtime-files-backup.zip`, next to the repository folder and outside it. Delete the
+zip once you are satisfied.
+
+## 5. `.gitignore` changes
+
+Added: `.env.*` with `!.env.example` (so variants of the secret file are ignored but the placeholder
+is tracked), `*.tmp` (temporary files from the atomic project save), `.pytest_cache/`. Already present and
+verified: `.env`, `__pycache__/`, `*.pyc`, `output_json/`, `output_dxf/`, `output_dwg/`, `output_staad/`,
+`output_lisp/`, `logs/`, `input_dwgs/*.dwl`, `*.dwl2`.
+
+`.env` was checked: it is ignored, has never been in Git history, and no `sk-ant-` style string appears in any
+other file. Its value was not printed or copied.
+
+## 6. Duplicate or overlapping functionality
+
+Nothing was consolidated or removed on the strength of overlap alone.
+
+| Area | Implementation A | Implementation B | Currently used | Assessment |
+|---|---|---|---|---|
+| DXF parsing | `dxf_parser.py`: architectural drawing, fixed layers, circle columns | `ga_dxf_parser.py`: structural multi-floor GA, layer-name pattern, joints/members/slabs | Both, by different wizard paths | Different jobs, not true duplicates. Both become adapters into `oracle.core.BuildingModel` |
+| STAAD | `staad_v8i_integration.py`: real COM analysis | `staad_integration.py`: openstaadpy attempt; `staad_mock.py`: estimate | v8i (real) and mock (fallback). `staad_integration.py` unused | v8i should be canonical; mock stays as the fallback; `staad_integration.py` is REVIEW |
+| Sketches | `ga_sketch.py`: AI single-floor layout | `ml_sketch.py`: parsed multi-floor model | Both | Same idea, different inputs; a candidate to merge after the core exists |
+| Drawing / BBS | `lisp_detail_generator.py`: schedules, BBS, LISP | `dwg_detail_generator.py`: draws, imports the builders from the LISP module | Both | Layered rather than duplicated; not two copies of the same logic |
+| Orchestration | `oracle_wizard.py` (GUI) | `oracle_pipeline.py` (CLI) | Wizard | Pipeline is stale; REVIEW |
+| Logging | `oracle_log.py` | none | Yes | Single system |
+| Configuration | `config.py` (but `staad_v8i_integration.py` defines its own `PROJECT_ROOT` and output paths, and `STANDARDS_PATH` is defined separately in `staad_mock.py`, `lisp_detail_generator.py` and `oracle_wizard.py`) | none | Yes | One config module, with some duplicated path constants. Not touched |
+| Claude calls | `claude_ga_generator.py`, `design_module.py`, wizard chat | each makes its own client, retry and JSON-fence stripping (`_strip_json_fences` exists in both generators) | Yes | Real duplication of a small helper; left alone |
+| Design/analysis in core | `oracle.core` (new) | legacy dict/JSON models | Legacy only, core unused by the app | Intended: legacy is wrapped by adapters over time |
+
+## 7. Items needing human review
+
+Decisions recorded by the owner after the first audit are marked (decided).
+
+1. `ml_sketch.py` (decided: part of the application, keep unchanged). Still untracked in Git; it is not
+   ignored, so `git add ml_sketch.py` with the next commit is all that is needed. Until then a fresh clone
+   would silently lose the multi-floor preview.
+2. Uncommitted local changes to `ga_dxf_parser.py`, `oracle_wizard.py` and `input_dwgs/test_floor.dxf`
+   predate this cleanup and are left as they are. The `.dxf` diff is timestamps only. The two `.py` diffs are
+   functional edits plus the header added by the cleanup.
+3. `staad_integration.py` (decided: keep, do not modify). Legacy, candidate for deprecation: unreferenced.
+4. `oracle_pipeline.py` (decided: keep, do not modify). Legacy, candidate for deprecation: stale and unlaunched.
+5. `generate_test_dwg.py` (fixed): importing it no longer generates or overwrites a DXF. Moving it to a
+   `tools/` folder is optional and later.
+6. `input_dwgs/Truss.dxf` and `test_multiple_floors.dwg` (decided: keep, do not modify). Purpose still
+   unconfirmed; no code uses them.
+7. `output_dxf/` (decided: leave in place). `OUTPUT_DXF_DIR` still appears unused apart from
+   `test_conversion.py`.
+8. `staad_v8i_integration.py`'s docstring says `oracle_pipeline.py` shells out to the 32-bit interpreter, but
+   the subprocess call is in `staad_v8i_integration.py` itself. Left as written (documentation only).
+9. `HOW TO USE.md` still describes the old workflow only; that is correct for the current app.
+10. Legacy files use mixed line endings (some CRLF, some LF). Headers preserved each file's style. A
+    `.gitattributes` would settle it; not added.

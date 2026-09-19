@@ -1,4 +1,28 @@
-# claude_ga_generator.py
+"""Oracle — AI Layout Generator (single floor)
+
+Purpose:
+    Builds the prompt from parsed architectural geometry and engineer notes, calls Claude (with
+    retries and JSON-fence stripping) and saves the proposed structural layout as
+    output_json/ga_output.json (columns, beams, slabs).
+
+Role in Oracle:
+    Legacy AI layout step. Claude currently proposes the layout; under the V2 principle it
+    should only ever propose, with the engineer deciding.
+
+Dependencies:
+    anthropic (imported inside call_claude); config; oracle_log.
+
+Consumers:
+    oracle_wizard, oracle_pipeline.
+
+Status:
+    Legacy / Transitional.
+
+Migration:
+    Retained. Later, its output becomes proposed elements/decisions in oracle.core and the
+    prompt is rendered from the project's decisions and design basis.
+"""
+
 import json
 import os
 from pathlib import Path

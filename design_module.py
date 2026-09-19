@@ -1,4 +1,28 @@
-# design_module.py
+"""Oracle — AI Member Design (Claude)
+
+Purpose:
+    Builds a design prompt from the GA and analysis forces (concrete to BS 8110, steel to
+    BS 5950, per the engineer's material choices), calls Claude, and saves member sizes and
+    reinforcement as output_json/design_output.json.
+
+Role in Oracle:
+    Legacy design step. Section sizes and reinforcement come from a Claude response, not from
+    deterministic, testable engineering code.
+
+Dependencies:
+    anthropic; config; oracle_log.
+
+Consumers:
+    oracle_wizard, oracle_pipeline.
+
+Status:
+    Legacy / Transitional.
+
+Migration:
+    Retained. Expected to be superseded by deterministic design modules, with Claude limited to
+    proposals and explanations, but only once that engine exists and is tested.
+"""
+
 import json
 from pathlib import Path
 from config import OUTPUT_JSON_DIR, get_api_key
