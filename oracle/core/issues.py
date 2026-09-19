@@ -1,25 +1,28 @@
 """Oracle — Core Engineering Issues
 
 Purpose:
-    EngineeringIssue: a problem found in the model or design, with severity (info to
-    blocking), category, target, source, status (open/resolved/accepted), resolution and the
-    decision that settled it.
+    EngineeringIssue: a problem found in the model or design, with severity (info to blocking),
+    category, target, source, status (open/resolved/accepted), resolution and the decision that
+    settled it, plus the evidence (provenance record IDs) that shows it, related objects, and the
+    interpretation it concerns.
 
 Role in Oracle:
-    Structured replacement for transient parser warnings (ParseIssue). Accepting an error or
-    blocking issue requires a recorded engineer decision.
+    Structured replacement for transient parser warnings (ParseIssue). Accepting an error or blocking
+    issue requires a recorded engineer decision (the project also requires that decision to be the
+    engineer's). An open BLOCKING issue keeps the project from being ready for final output.
 
 Dependencies:
     oracle.core.common.
 
 Consumers:
-    oracle.core.project.
+    oracle.core.project (stores, cross-checks, readiness); adapters and future checks create issues.
 
 Status:
-    Core.
+    Core (extended in schema 0.2.0).
 
-Migration:
-    Remains. Parsers and design checks will create these through adapters.
+Migration/Notes:
+    0.2.0 added evidence, interpretation_id and related (optional, so 0.1.0 issues load unchanged).
+    Parsers and design checks create issues through adapters.
 """
 
 from __future__ import annotations
@@ -74,6 +77,9 @@ class EngineeringIssue:
     status: IssueStatus = IssueStatus.OPEN
     resolution: Optional[str] = None
     decision_id: Optional[str] = None        # the EngineeringDecision that settled it, if any
+    evidence: tuple = ()                     # provenance record IDs that show the problem
+    interpretation_id: Optional[str] = None  # the interpretation this issue concerns, if any
+    related: tuple = ()                      # other objects involved (Targets), e.g. the column and the beam
 
     def __post_init__(self):
         check_id(self.id, "issue id")
@@ -87,6 +93,12 @@ class EngineeringIssue:
         check_optional_text(self.resolution, "issue resolution")
         if self.decision_id is not None:
             check_id(self.decision_id, "issue decision_id")
+        self.evidence = tuple(check_id(e, "issue evidence id") for e in self.evidence)
+        if self.interpretation_id is not None:
+            check_id(self.interpretation_id, "issue interpretation_id")
+        self.related = tuple(self.related)
+        if not all(isinstance(r, Target) for r in self.related):
+            raise ValidationError(f"Issue {self.id}: related objects must be Targets.")
         if self.status != IssueStatus.OPEN and not self.resolution:
             raise ValidationError(f"Issue {self.id}: a {self.status.value} issue needs a resolution note.")
         if (self.status == IssueStatus.ACCEPTED and self.severity in _SEVERITIES_NEEDING_DECISION_TO_ACCEPT
@@ -116,12 +128,16 @@ class EngineeringIssue:
     def to_dict(self) -> dict:
         return {"id": self.id, "severity": self.severity.value, "category": self.category.value,
                 "message": self.message, "target": self.target.to_dict(), "source": self.source,
-                "status": self.status.value, "resolution": self.resolution, "decision_id": self.decision_id}
+                "status": self.status.value, "resolution": self.resolution, "decision_id": self.decision_id,
+                "evidence": list(self.evidence), "interpretation_id": self.interpretation_id,
+                "related": [r.to_dict() for r in self.related]}
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> "EngineeringIssue":
         check_keys(data, required={"id", "severity", "category", "message", "target", "source", "status"},
-                   optional={"resolution", "decision_id"}, where="issue")
+                   optional={"resolution", "decision_id", "evidence", "interpretation_id", "related"},
+                   where="issue")
         return cls(data["id"], data["severity"], data["category"], data["message"],
                    Target.from_dict(data["target"]), data["source"], data["status"],
-                   data.get("resolution"), data.get("decision_id"))
+                   data.get("resolution"), data.get("decision_id"), tuple(data.get("evidence") or ()),
+                   data.get("interpretation_id"), tuple(Target.from_dict(r) for r in data.get("related") or ()))

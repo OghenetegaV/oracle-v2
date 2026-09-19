@@ -1,0 +1,638 @@
+{
+  "schema_version": "0.1.0",
+  "oracle_version": "2.0.0.dev0",
+  "project_id": "79cdea806b1d4aeeadbbce3597b92d8f",
+  "name": "Lekki Office Block",
+  "description": "Test project",
+  "client": "Client Ltd",
+  "location": "Lagos",
+  "engineer": "A. Engineer",
+  "created_at": "2026-09-19T17:53:07Z",
+  "modified_at": "2026-09-19T17:53:07Z",
+  "design_basis": {
+    "design_code": "BS 8110-1:1997",
+    "concrete_grade": "C25/30",
+    "concrete_fcu_n_mm2": 25,
+    "reinforcement_grade": "Y (high-yield)",
+    "reinforcement_fy_n_mm2": 410,
+    "steel_grade": null,
+    "steel_fy_n_mm2": null,
+    "steel_design_code": null,
+    "loading_code": null,
+    "concrete_unit_weight_kn_m3": 24,
+    "cover_mm": {
+      "beam": 25,
+      "column": 40,
+      "slab": 25
+    },
+    "loadings": [
+      {
+        "level_id": null,
+        "occupancy": "Offices (general use)",
+        "imposed_kn_m2": 2.5,
+        "finishes_kn_m2": 1.5,
+        "partitions_kn_m2": null,
+        "notes": null
+      },
+      {
+        "level_id": "ROOF",
+        "occupancy": "Roof - no access",
+        "imposed_kn_m2": 0.75,
+        "finishes_kn_m2": 1.5,
+        "partitions_kn_m2": null,
+        "notes": null
+      }
+    ],
+    "wind": {
+      "applicable": true,
+      "basic_wind_speed_m_s": 40.0,
+      "terrain_category": "Suburban",
+      "notes": null
+    },
+    "seismic": {
+      "applicable": false,
+      "peak_ground_acceleration_g": null,
+      "ground_type": null,
+      "notes": null
+    },
+    "exposure_class": "Mild",
+    "durability_notes": null,
+    "fire_resistance_min": 60,
+    "default_storey_height_mm": 3000,
+    "assumptions": [
+      "Ground bearing capacity to be confirmed by soil investigation."
+    ]
+  },
+  "building": {
+    "id": "B1",
+    "name": "Test Building",
+    "levels": [
+      {
+        "id": "GF",
+        "name": "Ground Floor",
+        "index": 0,
+        "elevation_mm": 0.0,
+        "storey_height_mm": 3000.0
+      },
+      {
+        "id": "FF",
+        "name": "First Floor",
+        "index": 1,
+        "elevation_mm": 3000.0,
+        "storey_height_mm": 3000.0
+      },
+      {
+        "id": "ROOF",
+        "name": "Roof",
+        "index": 2,
+        "elevation_mm": 6000.0,
+        "storey_height_mm": null
+      }
+    ],
+    "grids": [],
+    "nodes": [
+      {
+        "id": "N1",
+        "level_id": "FF",
+        "location": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "id": "N2",
+        "level_id": "FF",
+        "location": [
+          5000.0,
+          0.0
+        ]
+      },
+      {
+        "id": "N3",
+        "level_id": "FF",
+        "location": [
+          10000.0,
+          0.0
+        ]
+      },
+      {
+        "id": "N4",
+        "level_id": "FF",
+        "location": [
+          0.0,
+          5000.0
+        ]
+      },
+      {
+        "id": "N5",
+        "level_id": "FF",
+        "location": [
+          5000.0,
+          5000.0
+        ]
+      },
+      {
+        "id": "N6",
+        "level_id": "FF",
+        "location": [
+          10000.0,
+          5000.0
+        ]
+      },
+      {
+        "id": "N7",
+        "level_id": "FF",
+        "location": [
+          0.0,
+          10000.0
+        ]
+      },
+      {
+        "id": "N8",
+        "level_id": "FF",
+        "location": [
+          5000.0,
+          10000.0
+        ]
+      },
+      {
+        "id": "N9",
+        "level_id": "FF",
+        "location": [
+          10000.0,
+          10000.0
+        ]
+      }
+    ],
+    "elements": {
+      "columns": [
+        {
+          "id": "C1",
+          "lower_level_id": "GF",
+          "upper_level_id": "FF",
+          "location": [
+            0.0,
+            0.0
+          ],
+          "section": {
+            "shape": "rectangular",
+            "width_mm": 225,
+            "depth_mm": 225
+          },
+          "material": "C25/30",
+          "orientation_deg": 0.0
+        },
+        {
+          "id": "C2",
+          "lower_level_id": "GF",
+          "upper_level_id": "FF",
+          "location": [
+            5000.0,
+            0.0
+          ],
+          "section": {
+            "shape": "rectangular",
+            "width_mm": 225,
+            "depth_mm": 225
+          },
+          "material": "C25/30",
+          "orientation_deg": 0.0
+        },
+        {
+          "id": "C3",
+          "lower_level_id": "GF",
+          "upper_level_id": "FF",
+          "location": [
+            10000.0,
+            0.0
+          ],
+          "section": {
+            "shape": "rectangular",
+            "width_mm": 225,
+            "depth_mm": 225
+          },
+          "material": "C25/30",
+          "orientation_deg": 0.0
+        },
+        {
+          "id": "C4",
+          "lower_level_id": "GF",
+          "upper_level_id": "FF",
+          "location": [
+            0.0,
+            5000.0
+          ],
+          "section": {
+            "shape": "rectangular",
+            "width_mm": 225,
+            "depth_mm": 225
+          },
+          "material": "C25/30",
+          "orientation_deg": 0.0
+        },
+        {
+          "id": "C5",
+          "lower_level_id": "GF",
+          "upper_level_id": "FF",
+          "location": [
+            5000.0,
+            5000.0
+          ],
+          "section": {
+            "shape": "rectangular",
+            "width_mm": 225,
+            "depth_mm": 225
+          },
+          "material": "C25/30",
+          "orientation_deg": 0.0
+        },
+        {
+          "id": "C6",
+          "lower_level_id": "GF",
+          "upper_level_id": "FF",
+          "location": [
+            10000.0,
+            5000.0
+          ],
+          "section": {
+            "shape": "rectangular",
+            "width_mm": 225,
+            "depth_mm": 225
+          },
+          "material": "C25/30",
+          "orientation_deg": 0.0
+        },
+        {
+          "id": "C7",
+          "lower_level_id": "GF",
+          "upper_level_id": "FF",
+          "location": [
+            0.0,
+            10000.0
+          ],
+          "section": {
+            "shape": "rectangular",
+            "width_mm": 225,
+            "depth_mm": 225
+          },
+          "material": "C25/30",
+          "orientation_deg": 0.0
+        },
+        {
+          "id": "C8",
+          "lower_level_id": "GF",
+          "upper_level_id": "FF",
+          "location": [
+            5000.0,
+            10000.0
+          ],
+          "section": {
+            "shape": "rectangular",
+            "width_mm": 225,
+            "depth_mm": 225
+          },
+          "material": "C25/30",
+          "orientation_deg": 0.0
+        },
+        {
+          "id": "C9",
+          "lower_level_id": "GF",
+          "upper_level_id": "FF",
+          "location": [
+            10000.0,
+            10000.0
+          ],
+          "section": {
+            "shape": "rectangular",
+            "width_mm": 225,
+            "depth_mm": 225
+          },
+          "material": "C25/30",
+          "orientation_deg": 0.0
+        }
+      ],
+      "beams": [
+        {
+          "id": "B1",
+          "level_id": "FF",
+          "start_node_id": "N1",
+          "end_node_id": "N2",
+          "section": {
+            "shape": "rectangular",
+            "width_mm": 225,
+            "depth_mm": 450
+          },
+          "material": "C25/30"
+        },
+        {
+          "id": "B2",
+          "level_id": "FF",
+          "start_node_id": "N2",
+          "end_node_id": "N3",
+          "section": {
+            "shape": "rectangular",
+            "width_mm": 225,
+            "depth_mm": 450
+          },
+          "material": "C25/30"
+        },
+        {
+          "id": "B3",
+          "level_id": "FF",
+          "start_node_id": "N4",
+          "end_node_id": "N5",
+          "section": {
+            "shape": "rectangular",
+            "width_mm": 225,
+            "depth_mm": 450
+          },
+          "material": "C25/30"
+        },
+        {
+          "id": "B4",
+          "level_id": "FF",
+          "start_node_id": "N5",
+          "end_node_id": "N6",
+          "section": {
+            "shape": "rectangular",
+            "width_mm": 225,
+            "depth_mm": 450
+          },
+          "material": "C25/30"
+        },
+        {
+          "id": "B5",
+          "level_id": "FF",
+          "start_node_id": "N7",
+          "end_node_id": "N8",
+          "section": {
+            "shape": "rectangular",
+            "width_mm": 225,
+            "depth_mm": 450
+          },
+          "material": "C25/30"
+        },
+        {
+          "id": "B6",
+          "level_id": "FF",
+          "start_node_id": "N8",
+          "end_node_id": "N9",
+          "section": {
+            "shape": "rectangular",
+            "width_mm": 225,
+            "depth_mm": 450
+          },
+          "material": "C25/30"
+        },
+        {
+          "id": "B7",
+          "level_id": "FF",
+          "start_node_id": "N1",
+          "end_node_id": "N4",
+          "section": {
+            "shape": "rectangular",
+            "width_mm": 225,
+            "depth_mm": 450
+          },
+          "material": "C25/30"
+        },
+        {
+          "id": "B8",
+          "level_id": "FF",
+          "start_node_id": "N4",
+          "end_node_id": "N7",
+          "section": {
+            "shape": "rectangular",
+            "width_mm": 225,
+            "depth_mm": 450
+          },
+          "material": "C25/30"
+        },
+        {
+          "id": "B9",
+          "level_id": "FF",
+          "start_node_id": "N2",
+          "end_node_id": "N5",
+          "section": {
+            "shape": "rectangular",
+            "width_mm": 225,
+            "depth_mm": 450
+          },
+          "material": "C25/30"
+        },
+        {
+          "id": "B10",
+          "level_id": "FF",
+          "start_node_id": "N5",
+          "end_node_id": "N8",
+          "section": {
+            "shape": "rectangular",
+            "width_mm": 225,
+            "depth_mm": 450
+          },
+          "material": "C25/30"
+        },
+        {
+          "id": "B11",
+          "level_id": "FF",
+          "start_node_id": "N3",
+          "end_node_id": "N6",
+          "section": {
+            "shape": "rectangular",
+            "width_mm": 225,
+            "depth_mm": 450
+          },
+          "material": "C25/30"
+        },
+        {
+          "id": "B12",
+          "level_id": "FF",
+          "start_node_id": "N6",
+          "end_node_id": "N9",
+          "section": {
+            "shape": "rectangular",
+            "width_mm": 225,
+            "depth_mm": 450
+          },
+          "material": "C25/30"
+        }
+      ],
+      "walls": [],
+      "openings": [],
+      "slabs": [
+        {
+          "id": "S1",
+          "level_id": "FF",
+          "boundary": [
+            [
+              0,
+              0
+            ],
+            [
+              5000,
+              0
+            ],
+            [
+              5000,
+              5000
+            ],
+            [
+              0,
+              5000
+            ]
+          ],
+          "thickness_mm": 175,
+          "material": null,
+          "supported_by": [],
+          "opening_ids": []
+        },
+        {
+          "id": "S2",
+          "level_id": "FF",
+          "boundary": [
+            [
+              5000,
+              0
+            ],
+            [
+              10000,
+              0
+            ],
+            [
+              10000,
+              5000
+            ],
+            [
+              5000,
+              5000
+            ]
+          ],
+          "thickness_mm": 175,
+          "material": null,
+          "supported_by": [],
+          "opening_ids": []
+        },
+        {
+          "id": "S3",
+          "level_id": "FF",
+          "boundary": [
+            [
+              0,
+              5000
+            ],
+            [
+              5000,
+              5000
+            ],
+            [
+              5000,
+              10000
+            ],
+            [
+              0,
+              10000
+            ]
+          ],
+          "thickness_mm": 175,
+          "material": null,
+          "supported_by": [],
+          "opening_ids": []
+        },
+        {
+          "id": "S4",
+          "level_id": "FF",
+          "boundary": [
+            [
+              5000,
+              5000
+            ],
+            [
+              10000,
+              5000
+            ],
+            [
+              10000,
+              10000
+            ],
+            [
+              5000,
+              10000
+            ]
+          ],
+          "thickness_mm": 175,
+          "material": null,
+          "supported_by": [],
+          "opening_ids": []
+        }
+      ],
+      "stairs": [],
+      "foundations": []
+    }
+  },
+  "decisions": [
+    {
+      "id": "D1",
+      "created_at": "2026-09-19T17:53:07Z",
+      "author": "A. Engineer",
+      "source": "engineer",
+      "target": {
+        "scope": "element",
+        "id": "C5"
+      },
+      "category": "layout",
+      "instruction": "Keep C5 aligned with the architectural wall.",
+      "reason": "Wall above is load-bearing.",
+      "status": "accepted",
+      "overrides_recommendation": false,
+      "oracle_recommendation": null,
+      "superseded_by": null
+    },
+    {
+      "id": "D2",
+      "created_at": "2026-09-19T17:53:07Z",
+      "author": "Oracle",
+      "source": "oracle",
+      "target": {
+        "scope": "element",
+        "id": "B1"
+      },
+      "category": "section_sizing",
+      "instruction": "Recommend 225x450 for B1.",
+      "reason": null,
+      "status": "proposed",
+      "overrides_recommendation": false,
+      "oracle_recommendation": null,
+      "superseded_by": null
+    }
+  ],
+  "issues": [
+    {
+      "id": "I1",
+      "severity": "warning",
+      "category": "suspicious_span",
+      "message": "Long span.",
+      "target": {
+        "scope": "element",
+        "id": "B1"
+      },
+      "source": "test",
+      "status": "open",
+      "resolution": null,
+      "decision_id": null
+    },
+    {
+      "id": "I2",
+      "severity": "blocking",
+      "category": "missing_support",
+      "message": "B3 unsupported.",
+      "target": {
+        "scope": "element",
+        "id": "B3"
+      },
+      "source": "test",
+      "status": "open",
+      "resolution": null,
+      "decision_id": null
+    }
+  ]
+}

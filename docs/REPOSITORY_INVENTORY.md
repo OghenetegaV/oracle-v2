@@ -36,6 +36,13 @@ The inner `oracle/` directory is the Python package, not a copy of the repositor
 | `tests/__init__.py` | Test | Package marker for `unittest discover -t .` | test runner | Active | RETAIN |
 | `tests/fixtures.py` | Test | Shared model builders (3x3 columns, 2 storeys) | all core tests | Active | RETAIN |
 | `tests/test_project.py`, `test_building.py`, `test_elements.py`, `test_decisions_issues.py`, `test_design_basis.py` | Test | 67 unit tests of the core | test runner | Active | RETAIN |
+| `oracle/core/provenance.py`, `value_status.py`, `interpretations.py`, `readiness.py`, `migrations.py` | Core | Schema 0.2.0: provenance, value status, alternative interpretations, readiness gate, project-file migration | `project`, adapters, tests | Active | RETAIN |
+| `tests/fixtures/schema_0_1_0_project.json` | Sample Input | A genuine schema-0.1.0 project written by the Phase 1 code (tag `v2.0.0-phase1`), for the migration tests | `tests/test_migration_readiness.py` | Reference | RETAIN |
+| `tests/test_provenance_status.py`, `test_decision_authority.py`, `test_interpretations.py`, `test_migration_readiness.py`, `test_adapter_evidence.py` | Test | Core evidence model and adapter provenance tests | test runner | Active | RETAIN |
+| `docs/CORE_EVIDENCE_MODEL.md` | Documentation | Provenance, value status, interpretations, decision authority, readiness, migration | readers | New | RETAIN |
+| `oracle/adapters/__init__.py`, `result.py`, `legacy_ga.py` | Adapter | Phase 2: translate `ga_dxf_parser` output into `oracle.core` (result/provenance types; the adapter) | `tests/test_adapter_legacy_ga.py`; not yet the wizard | Active, not connected to the app | RETAIN |
+| `tests/test_adapter_legacy_ga.py` | Test | 43 integration/regression tests on the real GA fixture (see `docs/PHASE_2_ADAPTER.md`) | test runner | Active | RETAIN |
+| `docs/PHASE_2_ADAPTER.md` | Documentation | Legacy parser audit, mappings, gaps, future architectural-DWG boundary | readers | New | RETAIN |
 | `tests/test_generate_test_dwg.py` | Test | 3 regression tests: importing `generate_test_dwg` must not write a DXF; `main()` still builds the same drawing (uses a temp dir; the real fixture is snapshotted and restored) | test runner | Active | RETAIN |
 | `tests/fixtures/legacy_samples/*.json` (4) + `README.md` | Sample Input | Snapshots of legacy `ga_output`, `staad_results`, `design_output`, `bbs_output` (see its README) | nothing yet; reference for a future adapter | Reference | RETAIN (copied from `output_json/`) |
 | `docs/PHASE_1_ARCHITECTURE.md` | Documentation | Phase 1 architecture | readers | Active | RETAIN |

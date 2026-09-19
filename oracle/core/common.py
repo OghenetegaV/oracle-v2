@@ -2,7 +2,7 @@
 
 Purpose:
     Errors (ValidationError, SchemaVersionError), SCHEMA_VERSION, ID rules, the Target reference
-    (project / level / element) and the small validators and strict key-checker used for
+    (project / level / element / node / grid line) and the small validators and strict key-checker used for
     deserialisation.
 
 Role in Oracle:
@@ -18,13 +18,15 @@ Consumers:
 Status:
     Core.
 
-Migration:
-    Remains. SCHEMA_VERSION is the project-file schema version, separate from the application
-    version; change it only with a migration.
+Migration/Notes:
+    Remains. SCHEMA_VERSION is the project-file schema version (0.2.0), separate from the application
+    version; change it only with a migration in oracle.core.migrations. 0.2.0 added the NODE and GRID
+    target scopes and the confidence, field-path and JSON-value validators.
 """
 
 from __future__ import annotations
 
+import json
 import math
 import re
 from dataclasses import dataclass
@@ -32,7 +34,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Iterable, Mapping, Optional
 
-SCHEMA_VERSION = "0.1.0"
+SCHEMA_VERSION = "0.2.0"
 
 # Two points/nodes closer than this on the same level are treated as the same point.
 POSITION_TOL_MM = 1.0
@@ -52,11 +54,14 @@ class TargetScope(str, Enum):
     PROJECT = "project"
     LEVEL = "level"
     ELEMENT = "element"
+    NODE = "node"
+    GRID = "grid"
 
 
 @dataclass(frozen=True)
 class Target:
-    """What a decision or issue is about: the whole project, one level, or one element."""
+    """What a decision, issue, provenance record or value status is about: the whole project, or one
+    level, element, node or grid line."""
 
     scope: TargetScope = TargetScope.PROJECT
     id: Optional[str] = None
@@ -75,6 +80,14 @@ class Target:
     @classmethod
     def level(cls, level_id: str) -> "Target":
         return cls(TargetScope.LEVEL, level_id)
+
+    @classmethod
+    def node(cls, node_id: str) -> "Target":
+        return cls(TargetScope.NODE, node_id)
+
+    @classmethod
+    def grid(cls, label: str) -> "Target":
+        return cls(TargetScope.GRID, label)
 
     @classmethod
     def element(cls, element_id: str) -> "Target":
@@ -160,6 +173,36 @@ def parse_enum(enum_cls, value: Any, what: str):
     except ValueError:
         allowed = ", ".join(m.value for m in enum_cls)
         raise ValidationError(f"Unknown {what} {value!r}; expected one of: {allowed}.") from None
+
+
+def check_confidence(value: Any, what: str = "confidence") -> float:
+    """A degree of belief between 0 and 1 inclusive. Not a probability model: callers decide what it means."""
+    check_number(value, what)
+    if not 0.0 <= value <= 1.0:
+        raise ValidationError(f"{what} must be between 0 and 1, got {value!r}.")
+    return value
+
+
+_FIELD_RE = re.compile(r"^[a-z_][a-z0-9_]*(\.[a-z0-9_]+)*$")
+
+
+def check_field_path(value: Any, what: str = "field") -> str:
+    """A dotted path such as 'section' or 'section.width_mm'. Whether it names a real property is
+    checked by the project, which knows the object."""
+    if not isinstance(value, str) or not _FIELD_RE.match(value):
+        raise ValidationError(f"Invalid {what} {value!r}: use lower-case names joined by dots, e.g. 'section.width_mm'.")
+    return value
+
+
+def check_json_value(value: Any, what: str = "value") -> Any:
+    """Anything that survives a JSON round trip unchanged (no tuples, sets, NaN, custom objects)."""
+    try:
+        again = json.loads(json.dumps(value, allow_nan=False))
+    except (TypeError, ValueError):
+        raise ValidationError(f"{what} must be JSON-serialisable (numbers, text, lists, objects), got {value!r}.") from None
+    if again != value:
+        raise ValidationError(f"{what} does not survive a JSON round trip unchanged: {value!r}.")
+    return value
 
 
 def check_unique_ids(ids: Iterable[str], what: str) -> None:

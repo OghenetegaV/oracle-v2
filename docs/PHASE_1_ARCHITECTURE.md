@@ -1,6 +1,9 @@
 # Oracle v2 — Phase 1: Engineering Core Foundation
 
-Status: Phase 1 complete. Phase 2 has not been started.
+Status: Phase 1 complete. The Phase 2 legacy GA adapter is described in [PHASE_2_ADAPTER.md](PHASE_2_ADAPTER.md), and the
+schema-0.2.0 additions to the core (provenance, value status, interpretations, decision authority, readiness) in
+[CORE_EVIDENCE_MODEL.md](CORE_EVIDENCE_MODEL.md). This document describes the original 0.1.0 design; where it says
+"schema 0.1.0" the current version is 0.2.0.
 
 ## 1. Current architecture (audit findings)
 

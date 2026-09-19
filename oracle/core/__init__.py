@@ -1,7 +1,9 @@
 """Oracle — Engineering Core: Public API
 
 Purpose:
-    Re-exports the core's public classes so callers import from oracle.core.
+    Re-exports the core's public classes so callers import from oracle.core: the building model,
+    project, design basis, decisions, issues, and (schema 0.2.0) provenance, value status,
+    alternative interpretations and readiness.
 
 Role in Oracle:
     The import surface of the engineering core. The core is independent of the GUI, Claude,
@@ -17,7 +19,7 @@ Consumers:
 Status:
     Core.
 
-Migration:
+Migration/Notes:
     Remains. Add exports here as new core modules appear.
 """
 
@@ -30,8 +32,12 @@ from .elements import (
     StructuralElement, Wall,
 )
 from .geometry import Point2D, Polygon2D
+from .interpretations import Interpretation, InterpretationSet, InterpretationStatus, SetStatus
 from .issues import EngineeringIssue, IssueCategory, IssueSeverity, IssueStatus
 from .project import OracleProject
+from .provenance import ProvenanceRecord, SourceReference
+from .readiness import Blocker, BlockerKind, ProjectReadiness
+from .value_status import ENGINEER_STATUSES, ValueStatus, ValueStatusRecord
 
 __all__ = [
     "BuildingModel", "GridLine", "Level", "Node", "SCHEMA_VERSION", "SchemaVersionError", "Target", "TargetScope",
@@ -39,4 +45,6 @@ __all__ = [
     "DesignBasis", "LevelLoading", "SeismicBasis", "WindBasis", "Beam", "Column", "ElementKind", "Foundation",
     "FoundationType", "Opening", "Section", "SectionShape", "Slab", "Stair", "StructuralElement", "Wall",
     "Point2D", "Polygon2D", "EngineeringIssue", "IssueCategory", "IssueSeverity", "IssueStatus", "OracleProject",
+    "Interpretation", "InterpretationSet", "InterpretationStatus", "SetStatus", "ProvenanceRecord", "SourceReference",
+    "Blocker", "BlockerKind", "ProjectReadiness", "ENGINEER_STATUSES", "ValueStatus", "ValueStatusRecord",
 ]

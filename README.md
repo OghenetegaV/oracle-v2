@@ -20,7 +20,12 @@ Oracle V2 is a transition, and the repository holds two things side by side:
    basis, engineering decisions, engineering issues, saved as versioned JSON. **Nothing in the legacy
    application uses it yet.** No DXF adapter, analysis, design or drawing code has been connected to it.
 
-Nothing has been migrated. Migration is planned in [docs/PHASE_1_ARCHITECTURE.md](docs/PHASE_1_ARCHITECTURE.md).
+Phase 2 adds `oracle/adapters/`: an adapter that translates the legacy multi-floor GA parser's output into the
+core (see [docs/PHASE_2_ADAPTER.md](docs/PHASE_2_ADAPTER.md)). **It is not connected to the wizard yet.** The core
+(schema 0.2.0) also keeps provenance, the trust status of each value, alternative interpretations, decision history
+and a readiness gate, so an assumed value or an open blocking issue can never pass as a confirmed fact (see
+[docs/CORE_EVIDENCE_MODEL.md](docs/CORE_EVIDENCE_MODEL.md)). Old 0.1.0 projects still load.
+Migration is planned in [docs/PHASE_1_ARCHITECTURE.md](docs/PHASE_1_ARCHITECTURE.md).
 
 ## Layout
 
@@ -28,6 +33,7 @@ Nothing has been migrated. Migration is planned in [docs/PHASE_1_ARCHITECTURE.md
 oracle-v2/
   oracle/                  the Python package (NOT a copy of the repo)
     core/                  engineering domain model (V2), standard library only
+    adapters/              import adapters into the core (Phase 2: legacy GA parser)
   tests/                   unit tests for oracle.core; fixtures/legacy_samples/ has reference JSON
   docs/                    architecture and repository inventory
   input_dwgs/              sample drawings used by the legacy app and as fixtures
@@ -77,8 +83,9 @@ Setup details are in [HOW TO USE.md](HOW%20TO%20USE.md).
 python -m unittest discover -s tests -t .
 ```
 
-This runs the `oracle.core` unit tests plus a small regression test for `generate_test_dwg.py`. They are
-deterministic and need no Claude API, STAAD.Pro, AutoCAD or network. There is **no automated test of the legacy application**: `test_conversion.py` is a
+This runs the `oracle.core` unit tests, the adapter tests (which run the real legacy parser on the fixtures in
+`input_dwgs/`) and a small regression test for `generate_test_dwg.py`. They are deterministic and need no Claude
+API, STAAD.Pro, AutoCAD or network. There is **no automated test of the legacy application**: `test_conversion.py` is a
 manual smoke script that prints a DXF's layers, and the legacy workflow has only been checked by hand.
 
 ## Security: `.env`

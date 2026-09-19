@@ -18,9 +18,11 @@ Consumers:
 Status:
     Core.
 
-Migration:
-    Remains. The legacy parser's joints/members map onto Node/Beam/Column in a future adapter.
-    No structural calculation belongs here.
+Migration/Notes:
+    Remains. The legacy parser's joints/members map onto Node/Beam/Column through
+    oracle.adapters.legacy_ga. No structural calculation belongs here. replace_element() (schema 0.2.0
+    work) lets an engineer's value change swap in a re-validated element; get_grid() completes lookup
+    by ID for every kind of target.
 """
 
 from __future__ import annotations
@@ -190,6 +192,12 @@ class BuildingModel:
     def grids(self) -> list:
         return list(self._grids.values())
 
+    def get_grid(self, label: str) -> GridLine:
+        try:
+            return self._grids[label]
+        except KeyError:
+            raise ValidationError(f"Unknown grid line {label!r}.") from None
+
     def add_grid(self, grid: GridLine) -> GridLine:
         if grid.label in self._grids:
             raise ValidationError(f"Duplicate grid label {grid.label!r}.")
@@ -249,6 +257,20 @@ class BuildingModel:
             raise ValidationError(f"Not a structural element: {element!r}.")
         if element.id in self._elements:
             raise ValidationError(f"Duplicate element id {element.id!r}.")
+        self._check_element(element)
+        self._elements[element.id] = element
+        self._changed()
+        return element
+
+    def replace_element(self, element: StructuralElement) -> StructuralElement:
+        """Swap in a changed version of an existing element (same ID and kind), keeping its place in the
+        order. It is fully re-checked first, so a rejected change leaves the model unchanged."""
+        if not isinstance(element, StructuralElement):
+            raise ValidationError(f"Not a structural element: {element!r}.")
+        current = self.get_element(element.id)
+        if current.kind != element.kind:
+            raise ValidationError(f"Element {element.id} is a {current.kind.value}; it cannot be replaced by a "
+                                  f"{element.kind.value}.")
         self._check_element(element)
         self._elements[element.id] = element
         self._changed()
