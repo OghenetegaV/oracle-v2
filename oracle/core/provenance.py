@@ -97,7 +97,7 @@ class ProvenanceRecord:
     target: Target
     source: SourceReference
     method: str                            # how it was obtained, e.g. "polyline segment", "outline centroid"
-    producer: str                          # which system produced it, e.g. "ga_dxf_parser"
+    producer: str                          # which system produced it, e.g. "oracle.adapters.legacy_ga"
     field: Optional[str] = None            # None = the object as a whole; else e.g. 'section', 'geometry'
     confidence: Optional[float] = None     # the producer's own confidence, if it has one
     recorded_at: str = ""

@@ -25,6 +25,7 @@ from pathlib import Path
 from unittest import mock
 
 import ezdxf
+from tests.tiers import tier
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 FIXTURE = REPO_ROOT / "input_dwgs" / "test_floor.dxf"
@@ -35,6 +36,7 @@ def _fresh_import():
     return importlib.import_module("generate_test_dwg")
 
 
+@tier("integration")
 class GenerateTestDwgTests(unittest.TestCase):
     def setUp(self):
         if str(REPO_ROOT) not in sys.path:

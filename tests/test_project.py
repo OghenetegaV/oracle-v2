@@ -22,8 +22,10 @@ from oracle.core import (
     GridLine, IssueSeverity, OracleProject, Point2D, SchemaVersionError, Target, ValidationError,
 )
 from tests.fixtures import make_project
+from tests.tiers import tier
 
 
+@tier("unit")
 class ProjectTests(unittest.TestCase):
     def test_create_project_metadata(self):
         p = OracleProject.create("Job 1", "Engineer A", client="C", location="Abuja", description="d")

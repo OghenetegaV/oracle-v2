@@ -33,6 +33,7 @@ from oracle.adapters import Basis, adapt_legacy_ga
 from oracle.core import (
     DesignBasis, ElementKind, IssueCategory, IssueSeverity, OracleProject, Target,
 )
+from tests.tiers import tier
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 GA_DXF = REPO_ROOT / "input_dwgs" / "1st Flr, 2nd Flr and Roof GAs.dxf"
@@ -95,6 +96,7 @@ def crafted(joints, members, levels=("G", "1"), panels=None, loading=None, issue
     }
 
 
+@tier("integration")
 class RealFixtureTests(unittest.TestCase):
     """Real multi-floor GA (G, 1, 2, R) and a single-floor case cut from the same drawing."""
 
@@ -380,6 +382,7 @@ def _lies_on(pt, a, c, across=30.0, margin=80.0):
     return off <= across and margin < along < length - margin
 
 
+@tier("integration")
 class VoidTests(unittest.TestCase):
     """A VOID marker over one real slab panel, added to the single-floor cut of the real GA."""
 
@@ -423,6 +426,7 @@ class VoidTests(unittest.TestCase):
         self.assertTrue(issues_where(self.with_void, text="excluded due to VOID markers"))
 
 
+@tier("integration")
 class FailureTests(unittest.TestCase):
     """L. Bad or missing source data produces EngineeringIssues, never an exception or a half model."""
 
@@ -552,6 +556,7 @@ class FailureTests(unittest.TestCase):
         self.assertTrue(issues_where(res, text="collide"))
 
 
+@tier("integration")
 class BoundaryTests(unittest.TestCase):
     """The adapter and the core stay independent of the legacy scripts and of each other."""
 

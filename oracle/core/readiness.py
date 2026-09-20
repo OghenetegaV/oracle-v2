@@ -4,7 +4,8 @@ Purpose:
     ProjectReadiness and Blocker: the answer to "may this project be presented as ready for final
     engineering output?", with the reasons when it may not. A project is NOT ready while any of these
     stands: an open BLOCKING issue; an open interpretation set (unresolved ambiguity); an ASSUMED value
-    (a placeholder nobody has confirmed); or no building model at all. INFERRED values do not block but
+    (a placeholder nobody has confirmed); a floor plan, section or elevation view no engineer has
+    reviewed yet; or no building model at all. INFERRED values do not block but
     are listed as unconfirmed, because an Oracle inference is not an engineer-approved fact.
 
 Role in Oracle:
@@ -39,6 +40,7 @@ class BlockerKind(str, Enum):
     OPEN_INTERPRETATION = "open_interpretation"
     ASSUMED_VALUE = "assumed_value"
     NO_BUILDING = "no_building"
+    UNREVIEWED_VIEW = "unreviewed_view"
 
 
 @dataclass(frozen=True)
@@ -66,7 +68,8 @@ class ProjectReadiness:
                 f" ({len(self.unconfirmed)} inferred value(s) not engineer-confirmed)." if self.unconfirmed else ".")
         labels = {BlockerKind.BLOCKING_ISSUE: "blocking issue(s)", BlockerKind.OPEN_INTERPRETATION:
                   "unresolved interpretation(s)", BlockerKind.ASSUMED_VALUE: "assumed value(s)",
-                  BlockerKind.NO_BUILDING: "missing building model"}
+                  BlockerKind.NO_BUILDING: "missing building model",
+                  BlockerKind.UNREVIEWED_VIEW: "view(s) awaiting engineer review"}
         counts = {}
         for b in self.blockers:
             counts[b.kind] = counts.get(b.kind, 0) + 1

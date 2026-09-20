@@ -19,6 +19,7 @@ from oracle.core import (
     IssueSeverity, IssueStatus, OracleProject, Target, ValidationError,
 )
 from tests.fixtures import make_project
+from tests.tiers import tier
 
 
 def decision(did="D1", target=None, **kw):
@@ -37,6 +38,7 @@ def issue(iid="I1", target=None, **kw):
     return EngineeringIssue(iid, target=target or Target.project(), **kw)
 
 
+@tier("unit")
 class DecisionTests(unittest.TestCase):
     def test_create_decision_defaults(self):
         d = decision(target=Target.element("C5"), reason="Wall above is load-bearing.")
@@ -117,6 +119,7 @@ class DecisionTests(unittest.TestCase):
         self.assertEqual(EngineeringDecision.from_dict(d.to_dict()).to_dict(), d.to_dict())
 
 
+@tier("unit")
 class IssueTests(unittest.TestCase):
     def test_create_issue(self):
         i = issue(severity=IssueSeverity.BLOCKING, category=IssueCategory.MISSING_SUPPORT,

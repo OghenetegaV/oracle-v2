@@ -21,6 +21,7 @@ from oracle.core import (
     SourceReference, Target, ValidationError,
 )
 from tests.fixtures import make_project
+from tests.tiers import tier
 
 S1 = Target.element("S1")
 
@@ -49,6 +50,7 @@ def project_with_evidence():
     return p
 
 
+@tier("unit")
 class InterpretationModelTests(unittest.TestCase):
     def test_a_set_holds_ranked_alternatives_for_the_same_evidence(self):
         s = region_set()
@@ -126,6 +128,7 @@ class InterpretationModelTests(unittest.TestCase):
                                             Interpretation("Y", "slab", 0.4, "r", status="accepted", decision_id="D1")])
 
 
+@tier("unit")
 class InterpretationInProjectTests(unittest.TestCase):
     def test_add_query_and_readiness(self):
         p = project_with_evidence()

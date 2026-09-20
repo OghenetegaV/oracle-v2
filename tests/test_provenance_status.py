@@ -21,6 +21,7 @@ from oracle.core import (
     SourceReference, Target, ValidationError, ValueStatus, ValueStatusRecord,
 )
 from tests.fixtures import make_project
+from tests.tiers import tier
 
 B1, C5, N1, FF = Target.element("B1"), Target.element("C5"), Target.node("N1"), Target.level("FF")
 
@@ -50,6 +51,7 @@ def engineer_decision(did, target, **kw):
     return EngineeringDecision(did, "A. Engineer", DecisionSource.ENGINEER, target, DecisionCategory.OTHER, **kw)
 
 
+@tier("unit")
 class ProvenanceTests(unittest.TestCase):
     def test_create_and_query_object_and_field_level_records(self):
         p = make_project()
@@ -162,6 +164,7 @@ class ProvenanceTests(unittest.TestCase):
         OracleProject.from_dict(good)                                     # the untouched dict is still fine
 
 
+@tier("unit")
 class ValueStatusTests(unittest.TestCase):
     def test_all_seven_statuses_exist_and_round_trip(self):
         self.assertEqual({s.value for s in ValueStatus}, {"source", "inferred", "assumed", "engineer_defined",

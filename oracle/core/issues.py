@@ -73,13 +73,14 @@ class EngineeringIssue:
     category: IssueCategory
     message: str
     target: Target
-    source: str                              # which module/check raised it, e.g. "ga_dxf_parser"
+    source: str                              # which module/check raised it, e.g. "oracle.adapters.legacy_ga"
     status: IssueStatus = IssueStatus.OPEN
     resolution: Optional[str] = None
     decision_id: Optional[str] = None        # the EngineeringDecision that settled it, if any
     evidence: tuple = ()                     # provenance record IDs that show the problem
     interpretation_id: Optional[str] = None  # the interpretation this issue concerns, if any
     related: tuple = ()                      # other objects involved (Targets), e.g. the column and the beam
+    interpretation_set_id: Optional[str] = None  # the open question (InterpretationSet) this issue is the visible face of
 
     def __post_init__(self):
         check_id(self.id, "issue id")
@@ -96,6 +97,8 @@ class EngineeringIssue:
         self.evidence = tuple(check_id(e, "issue evidence id") for e in self.evidence)
         if self.interpretation_id is not None:
             check_id(self.interpretation_id, "issue interpretation_id")
+        if self.interpretation_set_id is not None:
+            check_id(self.interpretation_set_id, "issue interpretation_set_id")
         self.related = tuple(self.related)
         if not all(isinstance(r, Target) for r in self.related):
             raise ValidationError(f"Issue {self.id}: related objects must be Targets.")
@@ -126,18 +129,23 @@ class EngineeringIssue:
             raise
 
     def to_dict(self) -> dict:
-        return {"id": self.id, "severity": self.severity.value, "category": self.category.value,
+        out = {"id": self.id, "severity": self.severity.value, "category": self.category.value,
                 "message": self.message, "target": self.target.to_dict(), "source": self.source,
                 "status": self.status.value, "resolution": self.resolution, "decision_id": self.decision_id,
                 "evidence": list(self.evidence), "interpretation_id": self.interpretation_id,
                 "related": [r.to_dict() for r in self.related]}
+        if self.interpretation_set_id is not None:
+            out["interpretation_set_id"] = self.interpretation_set_id
+        return out
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> "EngineeringIssue":
         check_keys(data, required={"id", "severity", "category", "message", "target", "source", "status"},
-                   optional={"resolution", "decision_id", "evidence", "interpretation_id", "related"},
+                   optional={"resolution", "decision_id", "evidence", "interpretation_id", "related",
+                             "interpretation_set_id"},
                    where="issue")
         return cls(data["id"], data["severity"], data["category"], data["message"],
                    Target.from_dict(data["target"]), data["source"], data["status"],
                    data.get("resolution"), data.get("decision_id"), tuple(data.get("evidence") or ()),
-                   data.get("interpretation_id"), tuple(Target.from_dict(r) for r in data.get("related") or ()))
+                   data.get("interpretation_id"), tuple(Target.from_dict(r) for r in data.get("related") or ()),
+                   data.get("interpretation_set_id"))

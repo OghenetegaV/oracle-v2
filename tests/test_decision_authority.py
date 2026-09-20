@@ -23,6 +23,7 @@ from oracle.core import (
     ValueStatus, ValueStatusRecord,
 )
 from tests.fixtures import make_project
+from tests.tiers import tier
 
 C5, B1 = Target.element("C5"), Target.element("B1")
 
@@ -47,6 +48,7 @@ def set_section(p, did, target, w, d):
                                                                   instruction=f"{target.id} = {w}x{d}"))
 
 
+@tier("unit")
 class RecommendationVersusDecisionTests(unittest.TestCase):
     def test_an_oracle_or_ai_recommendation_can_only_be_added_as_proposed(self):
         p = make_project()
@@ -155,6 +157,7 @@ class RecommendationVersusDecisionTests(unittest.TestCase):
         self.assertEqual(p.get_issue("I1").status, IssueStatus.ACCEPTED)
 
 
+@tier("unit")
 class ValueChangeHistoryTests(unittest.TestCase):
     def test_engineer_changes_a_column_and_the_history_is_kept(self):
         p = make_project()
@@ -228,7 +231,7 @@ class ValueChangeHistoryTests(unittest.TestCase):
             set_section(p, "D1", C5, 350, 350)
         self.assertEqual(p.building.get_element("C5").section.width_mm, 300)
         with self.assertRaises(ValidationError):
-            p.set_value(Target.level("FF"), "name", "First", engineer("D9", Target.level("FF"), field="name", value="First"))
+            p.set_value(Target.node("N1"), "level_id", "FF", engineer("D9", Target.node("N1"), field="level_id", value="FF"))   # nodes are not settable (levels became settable in schema 0.4.0)
         with self.assertRaises(ValidationError):
             OracleProject.create("No building", "E").set_value(C5, "section", section(300, 300),
                                                                engineer("D9", C5, field="section", value=section(300, 300)))
@@ -271,6 +274,7 @@ class ValueChangeHistoryTests(unittest.TestCase):
                 "B404", "FF", "N1", "N2", p.building.get_element("B1").section))
 
 
+@tier("unit")
 class SupersessionTests(unittest.TestCase):
     def test_supersession_needs_the_same_target_and_field_and_no_loops(self):
         p = make_project()
@@ -308,6 +312,7 @@ class SupersessionTests(unittest.TestCase):
         OracleProject.from_json(p.to_json())                                   # still valid
 
 
+@tier("unit")
 class IssueEvidenceAndReadinessTests(unittest.TestCase):
     def setUp(self):
         self.p = make_project()

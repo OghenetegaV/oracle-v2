@@ -21,11 +21,35 @@ Oracle V2 is a transition, and the repository holds two things side by side:
    application uses it yet.** No DXF adapter, analysis, design or drawing code has been connected to it.
 
 Phase 2 adds `oracle/adapters/`: an adapter that translates the legacy multi-floor GA parser's output into the
-core (see [docs/PHASE_2_ADAPTER.md](docs/PHASE_2_ADAPTER.md)). **It is not connected to the wizard yet.** The core
-(schema 0.2.0) also keeps provenance, the trust status of each value, alternative interpretations, decision history
+core (see [docs/PHASE_2_ADAPTER.md](docs/PHASE_2_ADAPTER.md)). **It is not connected to the wizard yet.
+
+Phase 3.5 hardened that boundary before any structural reasoning is built on it: an accepted interpretation now actually changes the model and resolves its
+issues; a structural object can be linked, by a typed and validated evidence link, to approved architectural evidence; `project.trace(...)` walks that chain back to the
+source drawing and its entity identifiers and reports exactly what is missing; `project.approved_architecture()` is a read-only, domain-level, millimetre projection that the
+structural side can consume without knowing anything about CAD; the domain model no longer carries CAD vocabulary; observations describe what a drawing shows and never assert a
+structural meaning; a level's identity is not its label and its elevation says what kind it is. See
+[docs/PHASE_3_5_HARDENING.md](docs/PHASE_3_5_HARDENING.md).** The core
+(schema 0.4.0) also keeps provenance, the trust status of each value, alternative interpretations, decision history
 and a readiness gate, so an assumed value or an open blocking issue can never pass as a confirmed fact (see
-[docs/CORE_EVIDENCE_MODEL.md](docs/CORE_EVIDENCE_MODEL.md)). Old 0.1.0 projects still load.
+[docs/CORE_EVIDENCE_MODEL.md](docs/CORE_EVIDENCE_MODEL.md)). Old 0.1.0 and 0.2.0 projects still load.
 Migration is planned in [docs/PHASE_1_ARCHITECTURE.md](docs/PHASE_1_ARCHITECTURE.md).
+
+Phase 3 adds the **architectural drawing intelligence layer** (`oracle/ingestion/`, `oracle/interpretation/`): it reads a
+real architectural DWG/DXF and proposes what the drawing contains (views, levels, sections, elevations, units, layer meanings,
+architectural observations) with evidence, confidence and alternatives, and turns every disagreement into an open question
+and an issue instead of a silent choice. It designs nothing and creates no building until an engineer decides. See
+[docs/PHASE_3_ARCHITECTURAL_INTERPRETATION.md](docs/PHASE_3_ARCHITECTURAL_INTERPRETATION.md). Try it (read only):
+
+```
+python -m oracle.interpretation "input_dwgs/some drawing.dwg" --engineer "Your Name" --project out.oracle.json --report out.txt
+```
+
+**It is a proposal engine, not an oracle of truth**: on real drawings it will leave views unknown and ask the engineer to confirm.
+
+It is exposed in the wizard as the **Architectural Drawing** workflow (`oracle/application/`, `oracle/ui/`): press *Architectural Drawing...* on the
+welcome screen (or run `python oracle_wizard.py --architectural`), choose a DWG/DXF, watch Oracle interpret it, review what it understood, make engineer
+decisions, and save/reopen the project. It is separate from the eight structural steps, which are unchanged. See
+[docs/ARCHITECTURAL_WORKFLOW_UI.md](docs/ARCHITECTURAL_WORKFLOW_UI.md).
 
 ## Layout
 
@@ -34,6 +58,10 @@ oracle-v2/
   oracle/                  the Python package (NOT a copy of the repo)
     core/                  engineering domain model (V2), standard library only
     adapters/              import adapters into the core (Phase 2: legacy GA parser)
+    ingestion/             DWG/DXF -> neutral DrawingDocument (Phase 3; the only ezdxf reader)
+    interpretation/        architectural drawing intelligence (Phase 3): views, levels, units, layers, reconciliation, CLI
+    application/           service layer for the architectural workflow (session, read models, preview model); no toolkit, no CAD library
+    ui/                    Tkinter architectural workspace (imports oracle.application only)
   tests/                   unit tests for oracle.core; fixtures/legacy_samples/ has reference JSON
   docs/                    architecture and repository inventory
   input_dwgs/              sample drawings used by the legacy app and as fixtures
@@ -80,13 +108,17 @@ Setup details are in [HOW TO USE.md](HOW%20TO%20USE.md).
 ## Tests
 
 ```
-python -m unittest discover -s tests -t .
+python -m unittest discover -s tests -t .      # the everyday suite: unit + integration, no real drawing (about 20-45 s)
+python -m tests unit                            # the fastest tier only (about 1 s)
+python -m tests slow                            # the real architectural drawing and the interface workflow on it (about 80 s; needs the ODA converter)
+python -m tests all                             # complete regression: every tier (about 1-2 min)
 ```
 
-This runs the `oracle.core` unit tests, the adapter tests (which run the real legacy parser on the fixtures in
-`input_dwgs/`) and a small regression test for `generate_test_dwg.py`. They are deterministic and need no Claude
-API, STAAD.Pro, AutoCAD or network. There is **no automated test of the legacy application**: `test_conversion.py` is a
-manual smoke script that prints a DXF's layers, and the legacy workflow has only been checked by hand.
+The tests are deterministic and need no Claude API, STAAD.Pro, AutoCAD or network (the slow and release tiers use the free ODA File Converter, and are
+skipped with a message if it is missing). They are split into four tiers (unit, integration, slow, release) selected by one mechanism, `ORACLE_TESTS` /
+`python -m tests`; nothing is removed or skipped to make the default fast. All commands, the tier of every test class and the timings are in
+[docs/TESTING.md](docs/TESTING.md). There is **no automated test of the legacy application**: `test_conversion.py` is a manual smoke script that prints a
+DXF's layers, and the legacy workflow has only been checked by hand.
 
 ## Security: `.env`
 

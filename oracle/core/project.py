@@ -2,9 +2,11 @@
 
 Purpose:
     OracleProject: the top-level aggregate for one engineering project. It holds identity and
-    metadata, the design basis, the building model, engineering decisions and issues, and the three
+    metadata, the design basis, the building model, engineering decisions and issues, the three
     evidence registries added in schema 0.2.0: provenance (where things came from), value statuses
-    (how far each value can be trusted) and interpretation sets (competing readings of the source).
+    (how far each value can be trusted) and interpretation sets (competing readings of the source), and
+    (schema 0.3.0) the architectural interpretation of the source drawing, with the engineer's review,
+    merge and split actions on its views.
     It enforces the cross-references between all of them, applies engineer value changes with their
     history, reports readiness for final output, and reads and writes deterministic, versioned JSON
     (older schemas are migrated on load).
@@ -29,12 +31,15 @@ Consumers:
     tests; oracle.adapters (which build projects); future engines and the GUI.
 
 Status:
-    Core (schema 0.2.0).
+    Core (schema 0.4.0).
 
 Migration/Notes:
     Schema 0.2.0 added the provenance, value_status and interpretations registries, and the decision
-    and issue fields listed in their modules. 0.1.0 files load through oracle.core.migrations and are
-    saved as 0.2.0. Analysis, design, reinforcement and drawing records will arrive as later schema
+    and issue fields listed in their modules; 0.3.0 added `architecture`; 0.4.0 turned it into `architectures` (one
+    interpretation per drawing source), added `evidence_links` (typed links from domain objects to approved
+    architectural evidence), structured interpretation effects that make resolving a set change the model, level
+    values under set_value(), trace() and the read-only approved_architecture() projection. Older files load through
+    oracle.core.migrations and are saved as the current schema. Analysis, design, reinforcement and drawing records will arrive as later schema
     versions, each with a migration.
 """
 
@@ -47,7 +52,18 @@ from pathlib import Path
 from typing import Any, Mapping, Optional, Union
 
 from .. import __version__ as ORACLE_VERSION
-from .building import BuildingModel
+from dataclasses import replace as dataclass_replace
+
+from . import approved as _approved
+from . import resolution as _resolution
+from . import trace as _trace
+from .architecture import (
+    ArchitecturalInterpretation, ArchitecturalObservation, CoordinateFrame, DrawingView, HeightEvidence, ReviewStatus,
+    ViewType,
+)
+from .building import BuildingModel, Level
+from .evidence import EvidenceLink, EvidenceRelation
+from .level_changes import plan_level_change
 from .common import (
     SCHEMA_VERSION, Target, TargetScope, ValidationError, check_field_path, check_id, check_keys,
     check_optional_text, check_text, check_timestamp, check_unique_ids, parse_enum, utc_now_iso,
@@ -86,6 +102,8 @@ class OracleProject:
         self._provenance: dict = {}
         self._value_status: dict = {}
         self._interpretations: dict = {}
+        self._architectures: dict = {}          # source id -> ArchitecturalInterpretation
+        self._evidence_links: dict = {}
         self._provenance_seq = 0
 
     @classmethod
@@ -94,6 +112,198 @@ class OracleProject:
 
     def touch(self) -> None:
         self.modified_at = utc_now_iso()
+
+    # ---- architectural interpretation (one or more sources) ----
+
+    @property
+    def architecture(self) -> Optional[ArchitecturalInterpretation]:
+        """The first (usually the only) architectural interpretation, or None. With several sources use
+        `architectures` or `architecture_of(source_id)`."""
+        return next(iter(self._architectures.values()), None)
+
+    @property
+    def architectures(self) -> list:
+        return list(self._architectures.values())
+
+    def architecture_of(self, source_id: str) -> ArchitecturalInterpretation:
+        try:
+            return self._architectures[source_id]
+        except KeyError:
+            raise ValidationError(f"Unknown drawing source {source_id!r}.") from None
+
+    def add_architecture(self, architecture: ArchitecturalInterpretation) -> None:
+        """Attach the interpretation of one source. Sources are told apart by id, revision, hash and interpretation
+        instance; every architectural object id must be unique across the whole project so a Target names exactly one."""
+        architecture.validate()
+        source = architecture.drawing
+        if source.id in self._architectures:
+            raise ValidationError(f"This project already has an interpretation of source {source.id}.")
+        for other in self._architectures.values():
+            if other.drawing.interpretation_id == source.interpretation_id:
+                raise ValidationError(f"Interpretation instance {source.interpretation_id} is already used by {other.drawing.id}.")
+            clash = sorted(set(architecture._all) & set(other._all))
+            if clash:
+                raise ValidationError(f"Architectural id(s) {clash[:3]} are already used by source {other.drawing.id}; "
+                                      "every object id must be unique across the project.")
+        self._architectures[source.id] = architecture
+        self.touch()
+
+    set_architecture = add_architecture      # the original name, from when a project held one drawing
+
+    def _arch_holding(self, object_id: str) -> Optional[ArchitecturalInterpretation]:
+        return next((a for a in self._architectures.values() if a.has(object_id)), None)
+
+    def _arch_object(self, object_id: str):
+        arch = self._arch_holding(object_id)
+        if arch is None:
+            raise ValidationError(f"Unknown architectural object {object_id!r}.")
+        return arch, arch.get(object_id)
+
+    def _engineer_review_decision(self, decision: EngineeringDecision) -> None:
+        if decision.source != DecisionSource.ENGINEER or decision.status != DecisionStatus.ACCEPTED:
+            raise ValidationError("A review action needs an accepted decision whose source is the engineer.")
+        if decision.field is not None:
+            raise ValidationError("A review decision is not a field change; use set_value() for that.")
+        self._check_new_decision(decision)
+
+    def _review_status(self, target: Target, decision_id: str, note: str) -> None:
+        self._value_status[(target.scope.value, target.id, "review")] = ValueStatusRecord(
+            target, "review", ValueStatus.ENGINEER_DEFINED, decision_id=decision_id, note=note)
+
+    def review_views(self, view_ids, decision: EngineeringDecision, *, accept: bool = True) -> None:
+        """The engineer accepts (or rejects) views. One engineer decision covers them all; nothing changes
+        if any view is unknown or already superseded."""
+        self._engineer_review_decision(decision)
+        found = []
+        for vid in view_ids:
+            arch, v = self._arch_object(vid)
+            if not isinstance(v, DrawingView) or v.review == ReviewStatus.SUPERSEDED:
+                raise ValidationError(f"{vid} is not a reviewable view.")
+            found.append((arch, v))
+        status = ReviewStatus.ACCEPTED if accept else ReviewStatus.REJECTED
+        self._store_decision(decision)
+        for arch, v in found:
+            arch.replace(dataclass_replace(v, review=status))
+            self._review_status(Target.architectural(v.id), decision.id, status.value)
+        self.touch()
+
+    def review_observations(self, observation_ids, decision: EngineeringDecision, *, accept: bool = True) -> None:
+        """The engineer accepts (or rejects) what the drawing appears to show at these places. Approving an observation
+        approves ONLY that it is there and what it appears to be; it makes no structural statement."""
+        self._engineer_review_decision(decision)
+        found = []
+        for oid in observation_ids:
+            arch, o = self._arch_object(oid)
+            if not isinstance(o, ArchitecturalObservation) or o.review == ReviewStatus.SUPERSEDED:
+                raise ValidationError(f"{oid} is not a reviewable observation.")
+            found.append((arch, o))
+        status = ReviewStatus.ACCEPTED if accept else ReviewStatus.REJECTED
+        self._store_decision(decision)
+        for arch, o in found:
+            arch.replace(dataclass_replace(o, review=status))
+            self._review_status(Target.architectural(o.id), decision.id, status.value)
+        self.touch()
+
+    def merge_views(self, view_ids, new_id: str, decision: EngineeringDecision) -> DrawingView:
+        """The engineer says several views are one. The originals are kept, marked superseded; the new view
+        takes over their observations. Its frames are cleared: the interpreter must derive them again."""
+        self._engineer_review_decision(decision)
+        return self._merge_views(view_ids, new_id, decision, store=True)
+
+    def _merge_views(self, view_ids, new_id: str, decision: EngineeringDecision, *, store: bool) -> DrawingView:
+        holders = [self._arch_object(v) for v in view_ids]
+        views = [v for _a, v in holders]
+        if len(views) < 2 or not all(isinstance(v, DrawingView) and v.review != ReviewStatus.SUPERSEDED for v in views):
+            raise ValidationError("Merging needs at least two current views.")
+        arch = holders[0][0]
+        if any(a is not arch for a, _v in holders):
+            raise ValidationError("Only views of one source can be merged.")
+        if len({v.view_type for v in views}) != 1:
+            raise ValidationError("Only views of the same type can be merged.")
+        keys = {v.level_key for v in views if v.level_key is not None}
+        if len(keys) > 1:
+            raise ValidationError(f"The views name different levels {sorted(keys)}; decide the level first.")
+        boxes = [v.bbox for v in views]
+        merged = DrawingView(
+            new_id, views[0].view_type, (min(b[0] for b in boxes), min(b[1] for b in boxes),
+                                          max(b[2] for b in boxes), max(b[3] for b in boxes)),
+            min(v.confidence for v in views), views[0].title, next(iter(keys), None), views[0].section_label,
+            views[0].orientation, None, None, tuple(dict.fromkeys(e for v in views for e in v.entity_ids)),
+            ReviewStatus.ACCEPTED, variant=views[0].variant)
+        if self._arch_holding(new_id) is not None:
+            raise ValidationError(f"Duplicate architectural id {new_id!r}.")
+        if store:
+            self._store_decision(decision)
+        arch.add(merged)
+        for v in views:
+            arch.replace(dataclass_replace(v, review=ReviewStatus.SUPERSEDED, superseded_by=(new_id,)))
+            for o in arch.observations_in(v.id):
+                arch.replace(dataclass_replace(o, view_id=new_id))
+        self._review_status(Target.architectural(new_id), decision.id, "accepted")
+        self.touch()
+        return merged
+
+    def split_view(self, view_id: str, parts: Mapping[str, Mapping[str, Any]], decision: EngineeringDecision) -> list:
+        """The engineer says one view is several. `parts` maps each new view id to {"bbox": ..., "entity_ids": [...]},
+        and together the parts must contain exactly the original's entities. The original is kept, superseded."""
+        self._engineer_review_decision(decision)
+        return self._split_view(view_id, parts, decision, store=True)
+
+    def _split_view(self, view_id: str, parts: Mapping[str, Mapping[str, Any]], decision: EngineeringDecision, *,
+                    store: bool) -> list:
+        arch, original = self._arch_object(view_id)
+        if not isinstance(original, DrawingView) or original.review == ReviewStatus.SUPERSEDED:
+            raise ValidationError(f"{view_id} is not a current view.")
+        if len(parts) < 2:
+            raise ValidationError("Splitting needs at least two parts.")
+        assigned = [e for part in parts.values() for e in part["entity_ids"]]
+        if sorted(assigned) != sorted(original.entity_ids) or len(set(assigned)) != len(assigned):
+            raise ValidationError("The parts must contain each of the original view's entities exactly once.")
+        for new_id in parts:
+            if self._arch_holding(new_id) is not None:
+                raise ValidationError(f"Duplicate architectural id {new_id!r}.")
+        new_views = [DrawingView(new_id, original.view_type, tuple(part["bbox"]), original.confidence, original.title,
+                                 original.level_key, original.section_label, original.orientation, original.frame_id,
+                                 None, tuple(part["entity_ids"]), ReviewStatus.ACCEPTED, variant=original.variant)
+                     for new_id, part in parts.items()]
+        if store:
+            self._store_decision(decision)
+        for v in new_views:
+            arch.add(v)
+            self._review_status(Target.architectural(v.id), decision.id, "accepted")
+        owner = {e: v.id for v in new_views for e in v.entity_ids}
+        for o in arch.observations_in(view_id):
+            arch.replace(dataclass_replace(o, view_id=next((owner[e] for e in o.entity_ids if e in owner),
+                                                            new_views[0].id)))
+        arch.replace(dataclass_replace(original, review=ReviewStatus.SUPERSEDED,
+                                       superseded_by=tuple(v.id for v in new_views)))
+        self.touch()
+        return new_views
+
+    def next_frame_id(self) -> str:
+        """The next unused coordinate-frame id, unique across every source in the project."""
+        highest = max((int(f.id[4:]) for a in self._architectures.values() for f in a.frames), default=0)
+        return f"FRM-{highest + 1:02d}"
+
+    def align_view(self, view_id: str, translation, decision: EngineeringDecision) -> CoordinateFrame:
+        """The engineer says how a plan lines up with the building: building = view-local + translation (in the source
+        drawing's units). The alignment frame is created and the view's alignment_frame_id is set THROUGH set_value,
+        so the change has the ordinary history. `decision` must be an accepted ENGINEER decision on the view's
+        alignment_frame_id whose value is the new frame's id (see next_frame_id())."""
+        arch, view = self._arch_object(view_id)
+        if not isinstance(view, DrawingView) or view.view_type != ViewType.FLOOR_PLAN or view.frame_id is None:
+            raise ValidationError(f"{view_id} is not a floor plan with a coordinate frame.")
+        frame = CoordinateFrame(decision.value, f"{view_id} to building (engineer)", view.frame_id,
+                                (-float(translation[0]), -float(translation[1])))
+        if decision.field != "alignment_frame_id" or decision.target != Target.architectural(view_id):
+            raise ValidationError("An alignment decision must be about the view's alignment_frame_id.")
+        arch.add(frame)
+        try:
+            self.set_value(decision.target, "alignment_frame_id", frame.id, decision)
+        except ValidationError:
+            arch.discard_frame(frame.id)                   # nothing half-applied
+            raise
+        return frame
 
     # ---- design basis / building ----
 
@@ -109,7 +319,8 @@ class OracleProject:
         return self._building
 
     def set_building(self, building: BuildingModel) -> None:
-        if any((self._decisions, self._issues, self._provenance, self._value_status, self._interpretations)):
+        if any((self._decisions, self._issues, self._provenance, self._value_status, self._interpretations,
+                self._evidence_links)):
             self._check_all_targets(building)
         self._building = building
         building.on_change = self.touch
@@ -355,34 +566,24 @@ class OracleProject:
 
     # ---- applying an engineer's value ----
 
-    def set_value(self, target: Target, field: str, value: Any, decision: EngineeringDecision) -> ValueStatusRecord:
-        """Apply an engineer's decision to one field of an element.
-
-        The decision (source ENGINEER, ACCEPTED, naming this target, field and value) is recorded, the
-        element is rebuilt and fully re-validated with the new value, the field becomes ENGINEER_OVERRIDE
-        if it already had a status (something the source, Oracle or an earlier engineer set) or
-        ENGINEER_DEFINED if it had none, and every earlier accepted decision on the same field is marked
-        superseded by this one. The old value stays in decision.previous_value. Nothing changes if any step
-        is rejected. Only top-level element fields are supported (e.g. 'section', 'thickness_mm')."""
-        if self._building is None or target.scope != TargetScope.ELEMENT:
-            raise ValidationError("set_value applies to structural elements of a project that has a building.")
+    def _check_engineer_change(self, target: Target, field: str, value: Any, decision: EngineeringDecision,
+                               current: dict) -> None:
+        """The checks every engineer value change must pass, whatever kind of object it is about."""
         check_field_path(field, "field")
         if "." in field:
             raise ValidationError("set_value takes a top-level field; replace the whole value (e.g. the section).")
-        element = self._building.get_element(target.id)
-        old = element.to_dict()
-        if field == "id" or field not in old:
-            raise ValidationError(f"Element {target.id} has no changeable field {field!r}.")
+        if field in ("id", "index") or field not in current:
+            raise ValidationError(f"{target.id} has no changeable field {field!r}.")
         if decision.source != DecisionSource.ENGINEER or decision.status != DecisionStatus.ACCEPTED:
             raise ValidationError("A value is only changed by an accepted decision whose source is the engineer.")
         if (decision.target, decision.field, decision.value) != (target, field, value):
             raise ValidationError("The decision must name exactly the target, field and value being applied.")
-        changed = dict(old)
-        changed[field] = value
-        replacement = type(element).from_dict(changed)  # raises if the new value is not valid for the element
-        self._check_new_decision(decision)
-        self._building.replace_element(replacement)  # last step that can fail; nothing else has changed yet
-        decision.previous_value = old[field]
+
+    def _commit_engineer_value(self, target: Target, field: str, value: Any, decision: EngineeringDecision,
+                               previous: Any) -> ValueStatusRecord:
+        """Record an engineer's value: the decision (with the value it replaced), the supersession of earlier accepted
+        decisions on the same field, and the value's status. The single place this history is written."""
+        decision.previous_value = previous
         self._store_decision(decision)
         for earlier in self.decision_history(target, field):
             if earlier.id != decision.id and earlier.status == DecisionStatus.ACCEPTED:
@@ -394,6 +595,151 @@ class OracleProject:
         self._value_status[record.key] = record
         self.touch()
         return record
+
+    def set_value(self, target: Target, field: str, value: Any, decision: EngineeringDecision) -> ValueStatusRecord:
+        """Apply an engineer's decision to one field of a level, an element or an architectural object.
+
+        The decision (source ENGINEER, ACCEPTED, naming this target, field and value) is recorded, the object is
+        rebuilt and fully re-validated with the new value, the field becomes ENGINEER_OVERRIDE if it already had a
+        status (something the source, Oracle or an earlier engineer set) or ENGINEER_DEFINED if it had none, and every
+        earlier accepted decision on the same field is marked superseded by this one. The old value stays in
+        decision.previous_value. Nothing changes if any step is rejected. Only top-level fields are supported (e.g.
+        'section', 'thickness_mm', a level's 'elevation_mm').
+
+        Levels are not special-cased: a level change goes through the same checks and the same history. What is
+        specific to levels is only that levels depend on each other (see oracle.core.level_changes): moving one level,
+        or changing a storey height, may move the levels above it, and each such consequence is recorded as its own
+        engineer decision, authored by the same engineer, that says what caused it."""
+        if target.scope == TargetScope.LEVEL and self._building is not None:
+            return self._set_level_value(target, field, value, decision)
+        if target.scope == TargetScope.ELEMENT and self._building is not None:
+            element, replace_object = self._building.get_element(target.id), self._building.replace_element
+        elif target.scope == TargetScope.ARCHITECTURAL and self._arch_holding(target.id) is not None:
+            arch = self._arch_holding(target.id)
+            element, replace_object = arch.get(target.id), arch.replace
+        else:
+            raise ValidationError("set_value applies to levels, structural elements and architectural interpretation "
+                                  "objects of a project that has them.")
+        old = element.to_dict()
+        self._check_engineer_change(target, field, value, decision, old)
+        changed = dict(old)
+        changed[field] = value
+        replacement = type(element).from_dict(changed)  # raises if the new value is not valid for the element
+        self._check_new_decision(decision)
+        replace_object(replacement)  # last step that can fail; nothing else has changed yet
+        return self._commit_engineer_value(target, field, value, decision, old[field])
+
+    def _set_level_value(self, target: Target, field: str, value: Any, decision: EngineeringDecision) -> ValueStatusRecord:
+        building = self._building
+        level = building.get_level(target.id)
+        current = level.to_full_dict()
+        self._check_engineer_change(target, field, value, decision, current)
+        changed = dict(current)
+        changed[field] = value
+        replacement = Level.from_dict(changed)
+        plan = plan_level_change(self, level, replacement, field)
+        self._check_new_decision(decision)
+        cascade = []
+        for n, (level_id, cfield, new, old) in enumerate(plan.cascaded, 1):
+            cid = f"{decision.id}.S{n}"
+            if cid in self._decisions:
+                raise ValidationError(f"Duplicate decision id {cid!r}.")
+            cascade.append((Target.level(level_id), cfield, new, old, EngineeringDecision(
+                cid, decision.author, DecisionSource.ENGINEER, Target.level(level_id), decision.category,
+                f"Moved with {decision.id}: changing {target.id}.{field} to {value!r} shifts {level_id}.{cfield} "
+                f"from {old!r} to {new!r}.", reason=decision.reason, status=DecisionStatus.ACCEPTED, field=cfield, value=new)))
+        building.replace_levels(plan.levels)                  # atomic and last to fail: nothing else has changed yet
+        record = self._commit_engineer_value(target, field, value, decision, current[field])
+        for ctarget, cfield, new, old, cdecision in cascade:
+            self._commit_engineer_value(ctarget, cfield, new, cdecision, old)
+        for level_id, step, old in plan.derived_heights:
+            self.set_value_status(ValueStatusRecord(
+                Target.level(level_id), "storey_height_mm", ValueStatus.DERIVED,
+                note=f"recomputed from the level elevations after {decision.id} (was {old!r})"))
+        return record
+
+    # ---- evidence links ----
+
+    @property
+    def evidence_links(self) -> list:
+        return list(self._evidence_links.values())
+
+    def get_evidence_link(self, link_id: str) -> EvidenceLink:
+        try:
+            return self._evidence_links[link_id]
+        except KeyError:
+            raise ValidationError(f"Unknown evidence link {link_id!r}.") from None
+
+    def links_for(self, subject) -> list:
+        """The evidence links whose subject is a Target (or a decision id)."""
+        key = ("decision", subject) if isinstance(subject, str) else (subject.scope.value, subject.id)
+        return [l for l in self._evidence_links.values() if l.subject_key == key]
+
+    def links_from(self, evidence: Target) -> list:
+        """Everything that rests on this piece of evidence."""
+        return [l for l in self._evidence_links.values() if l.evidence == evidence]
+
+    def link_evidence(self, subject: Optional[Target], evidence: Target, relation, decision, *,
+                      subject_decision_id: Optional[str] = None, note: Optional[str] = None) -> EvidenceLink:
+        """The engineer says a domain object (or a decision) was derived from, is supported by, or is constrained by a
+        piece of architectural evidence. `decision` is a new accepted ENGINEER decision, or the id of one already
+        recorded (so one decision can link several objects). Evidence that has a review status must have been ACCEPTED,
+        and so must the view an observation belongs to: an unapproved reading cannot support anything."""
+        fresh = isinstance(decision, EngineeringDecision)
+        if fresh:
+            self._engineer_review_decision(decision)
+            decision_id = decision.id
+        else:
+            decision_id = decision
+            self._require_engineer_decision(decision_id, "an evidence link")
+        relation = parse_enum(EvidenceRelation, relation, "evidence relation")
+        link_id = f"EV-{max((int(l.id[3:]) for l in self._evidence_links.values()), default=0) + 1:04d}"
+        link = EvidenceLink(link_id, evidence, relation, decision_id, subject, subject_decision_id, note, utc_now_iso())
+        self._check_evidence_link(link, approval=True, pending=decision if fresh else None)
+        if any(l.subject_key == link.subject_key and l.evidence == evidence and l.relation == relation
+               for l in self._evidence_links.values()):
+            raise ValidationError(f"{link.subject_key[1]} is already linked to {evidence.id} as {relation.value}.")
+        if fresh:
+            self._store_decision(decision)
+        self._evidence_links[link_id] = link
+        self.touch()
+        return link
+
+    def _check_evidence_link(self, link: EvidenceLink, *, approval: bool, pending: Optional[EngineeringDecision] = None,
+                             building: Optional[BuildingModel] = None) -> None:
+        what = f"evidence link {link.id}"
+        building = building or self._building
+        if pending is None:
+            self._require_engineer_decision(link.decision_id, what)
+        if link.subject is not None:
+            self._check_target(building, link.subject, what)
+        elif link.subject_decision_id not in self._decisions and not (
+                pending is not None and link.subject_decision_id == pending.id):
+            raise ValidationError(f"{what.capitalize()} names unknown decision {link.subject_decision_id!r}.")
+        self._check_target(building, link.evidence, what)
+        arch, obj = self._arch_object(link.evidence.id)
+        if not isinstance(obj, (DrawingView, ArchitecturalObservation, HeightEvidence)):
+            raise ValidationError(f"{what.capitalize()}: {link.evidence.id} is not something a decision can rest on "
+                                  "(a view, an observation or a height).")
+        if approval:
+            if isinstance(obj, (DrawingView, ArchitecturalObservation)) and obj.review != ReviewStatus.ACCEPTED:
+                raise ValidationError(f"{link.evidence.id} has not been accepted by an engineer "
+                                      f"(it is {obj.review.value}); unapproved evidence cannot support a decision.")
+            if isinstance(obj, ArchitecturalObservation):
+                view = arch.get(obj.view_id)
+                if view.review != ReviewStatus.ACCEPTED:
+                    raise ValidationError(f"{link.evidence.id} belongs to {view.id}, which has not been accepted.")
+
+    def trace(self, target):
+        """Walk the evidence chain of a target backwards: final object -> decisions -> evidence links -> architectural
+        evidence -> provenance -> source drawing and entity identifiers. `target` is a Target or an object id. The
+        result says exactly which links are missing; nothing is filled in."""
+        return _trace.trace(self, target)
+
+    def approved_architecture(self, source_id: Optional[str] = None):
+        """The read-only projection of what an engineer has approved, in domain terms and millimetres, for the
+        structural side to consume. See oracle.core.approved."""
+        return _approved.approved_architecture(self, source_id)
 
     # ---- alternative interpretations ----
 
@@ -433,6 +779,8 @@ class OracleProject:
             if evidence_id not in self._provenance:
                 raise ValidationError(f"{what.capitalize()} cites unknown provenance record {evidence_id!r}.")
         for a in s.alternatives:
+            if a.status.value == "proposed":                  # a resolved set's targets may legitimately have moved on
+                _resolution.check_effect_targets(self, s, a)
             for evidence_id in a.evidence:
                 if evidence_id not in self._provenance:
                     raise ValidationError(f"Interpretation {a.id} cites unknown provenance record {evidence_id!r}.")
@@ -442,12 +790,15 @@ class OracleProject:
     def open_interpretation_sets(self) -> list:
         return [s for s in self._interpretations.values() if s.status == SetStatus.OPEN]
 
-    def accept_interpretation(self, set_id: str, interpretation_id: str, decision_id: str) -> None:
-        """The engineer chooses one reading; the others are rejected under the same decision."""
-        s = self.get_interpretation_set(set_id)
-        self._require_engineer_decision(decision_id, f"accepting interpretation {interpretation_id}")
-        s.accept(interpretation_id, decision_id)
-        self.touch()
+    def accept_interpretation(self, set_id: str, interpretation_id: str, decision_id: str, *,
+                              apply_effects: bool = True) -> None:
+        """The engineer chooses one reading; the others are rejected under the same decision, and what the chosen
+        reading MEANS (its effects: a value, a height, an alignment, a merge...) is carried out through the ordinary
+        engineer-decision machinery and recorded on the alternative. Issues linked to the set that the resolution
+        addresses are resolved under the same decision. All or nothing: it is first rehearsed on a copy, and if any
+        effect would be refused nothing at all changes. `apply_effects=False` records the choice only, for an
+        engineer who supplies the values directly."""
+        _resolution.accept(self, set_id, interpretation_id, decision_id, apply_effects=apply_effects)
 
     def reject_interpretation(self, set_id: str, interpretation_id: str, decision_id: str) -> None:
         s = self.get_interpretation_set(set_id)
@@ -466,6 +817,12 @@ class OracleProject:
             result.blockers.append(Blocker(BlockerKind.NO_BUILDING, "project", "The project has no building model."))
         for issue in self.open_issues(IssueSeverity.BLOCKING):
             result.blockers.append(Blocker(BlockerKind.BLOCKING_ISSUE, issue.id, issue.message))
+        for arch in self._architectures.values():
+            for v in arch.views:
+                if (v.view_type in (ViewType.FLOOR_PLAN, ViewType.SECTION, ViewType.ELEVATION)
+                        and v.review == ReviewStatus.PROPOSED):
+                    result.blockers.append(Blocker(BlockerKind.UNREVIEWED_VIEW, v.id, f"{v.id} ({v.view_type.value}"
+                                                   f"{': ' + v.title if v.title else ''}) has not been reviewed."))
         for s in self.open_interpretation_sets():
             result.blockers.append(Blocker(BlockerKind.OPEN_INTERPRETATION, s.id, s.question))
         for r in self.values_with_status(ValueStatus.ASSUMED):
@@ -478,12 +835,20 @@ class OracleProject:
     # ---- validation ----
 
     def _object_dict(self, building: Optional[BuildingModel], target: Target) -> dict:
-        getter = {TargetScope.LEVEL: building.get_level, TargetScope.NODE: building.get_node,
-                  TargetScope.GRID: building.get_grid, TargetScope.ELEMENT: building.get_element}[target.scope]
+        if target.scope == TargetScope.ARCHITECTURAL:
+            return self._arch_object(target.id)[1].to_dict()
+        if target.scope == TargetScope.LEVEL:
+            return building.get_level(target.id).to_full_dict()
+        getter = {TargetScope.NODE: building.get_node, TargetScope.GRID: building.get_grid,
+                  TargetScope.ELEMENT: building.get_element}[target.scope]
         return getter(target.id).to_dict()
 
     def _check_target(self, building: Optional[BuildingModel], target: Target, what: str) -> None:
         if target.scope == TargetScope.PROJECT:
+            return
+        if target.scope == TargetScope.ARCHITECTURAL:
+            if self._arch_holding(target.id) is None:
+                raise ValidationError(f"{what.capitalize()} targets unknown architectural object {target.id!r}.")
             return
         if building is None:
             raise ValidationError(f"{what.capitalize()} targets {target.scope.value} {target.id!r} but the "
@@ -517,6 +882,8 @@ class OracleProject:
         for s in self._interpretations.values():
             if s.subject is not None:
                 self._check_target(building, s.subject, f"interpretation set {s.id}")
+        for link in self._evidence_links.values():
+            self._check_evidence_link(link, approval=False, building=building)
 
     def validate(self) -> None:
         """Full consistency check: building, design basis and every cross-reference."""
@@ -524,6 +891,8 @@ class OracleProject:
             self.design_basis.validate()
         if self._building is not None:
             self._building.validate()
+        for arch in self._architectures.values():
+            arch.validate()
         self._check_all_targets(self._building)
         for d in self._decisions.values():
             self._check_decision(d)
@@ -536,6 +905,9 @@ class OracleProject:
             self._check_field(r.target, r.field, f"provenance {r.id}")
         for r in self._value_status.values():
             self._check_value_status(r)
+        for i in self._issues.values():
+            if i.interpretation_set_id is not None and i.interpretation_set_id not in self._interpretations:
+                raise ValidationError(f"Issue {i.id} refers to unknown interpretation set {i.interpretation_set_id!r}.")
         seen_alternatives = set()
         for s in self._interpretations.values():
             self._check_interpretation_set(s)
@@ -543,6 +915,7 @@ class OracleProject:
                 if a.id in seen_alternatives:
                     raise ValidationError(f"Duplicate interpretation id {a.id!r}.")
                 seen_alternatives.add(a.id)
+        _resolution.check_resolutions(self)
 
     def _check_decision(self, d: EngineeringDecision) -> None:
         if d.superseded_by is not None and d.superseded_by not in self._decisions:
@@ -583,14 +956,21 @@ class OracleProject:
         """The model must reflect the latest accepted engineer decision on each element field."""
         latest = {}
         for d in self._decisions.values():
-            if (d.field is not None and d.target.scope == TargetScope.ELEMENT and d.source == DecisionSource.ENGINEER
-                    and d.status == DecisionStatus.ACCEPTED):
-                if (d.target.id, d.field) in latest:
-                    raise ValidationError(f"Decisions {latest[(d.target.id, d.field)].id} and {d.id} both stand on "
+            if (d.field is not None and d.target.scope in (TargetScope.ELEMENT, TargetScope.ARCHITECTURAL, TargetScope.LEVEL)
+                    and d.source == DecisionSource.ENGINEER and d.status == DecisionStatus.ACCEPTED):
+                key = (d.target.scope.value, d.target.id, d.field)
+                if key in latest:
+                    raise ValidationError(f"Decisions {latest[key].id} and {d.id} both stand on "
                                           f"{d.target.id}.{d.field}; the earlier one should be superseded.")
-                latest[(d.target.id, d.field)] = d
-        for (element_id, field), d in latest.items():
-            current = self._building.get_element(element_id).to_dict().get(field)
+                latest[key] = d
+        for (_scope_name, element_id, field), d in latest.items():
+            scope = d.target.scope
+            if scope == TargetScope.ARCHITECTURAL:
+                current = self._arch_object(element_id)[1].to_dict().get(field)
+            elif scope == TargetScope.LEVEL:
+                current = self._building.get_level(element_id).to_full_dict().get(field)
+            else:
+                current = self._building.get_element(element_id).to_dict().get(field)
             if current != d.value:
                 raise ValidationError(f"Decision {d.id} says {element_id}.{field} = {d.value!r} but the model has "
                                       f"{current!r}.")
@@ -616,13 +996,16 @@ class OracleProject:
             "provenance": [r.to_dict() for r in self._provenance.values()],
             "value_status": [r.to_dict() for r in self._value_status.values()],
             "interpretations": [s.to_dict() for s in self._interpretations.values()],
+            "architectures": [a.to_dict() for a in self._architectures.values()],
+            "evidence_links": [l.to_dict() for l in self._evidence_links.values()],
         }
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> "OracleProject":
         data = migrate(data)  # refuses unknown versions; upgrades older ones without inventing content
         check_keys(data, required={"schema_version", "project_id", "name", "engineer", "created_at", "modified_at",
-                                   "decisions", "issues", "provenance", "value_status", "interpretations"},
+                                   "decisions", "issues", "provenance", "value_status", "interpretations",
+                                   "architectures", "evidence_links"},
                    optional={"oracle_version", "description", "client", "location", "design_basis", "building"},
                    where="project")
         project = cls(data["project_id"], data["name"], data["engineer"], description=data.get("description"),
@@ -632,6 +1015,17 @@ class OracleProject:
             project.design_basis = DesignBasis.from_dict(data["design_basis"])
         if data.get("building") is not None:
             project._building = BuildingModel.from_dict(data["building"])
+        rows = data["architectures"]
+        if not isinstance(rows, list):
+            raise ValidationError("architectures must be a list.")
+        for row in rows:
+            arch = ArchitecturalInterpretation.from_dict(row)
+            if arch.drawing.id in project._architectures:
+                raise ValidationError(f"Duplicate drawing source {arch.drawing.id!r}.")
+            project._architectures[arch.drawing.id] = arch
+        links = [EvidenceLink.from_dict(l) for l in data["evidence_links"]]
+        check_unique_ids((l.id for l in links), "evidence link id")
+        project._evidence_links = {l.id: l for l in links}
         decisions = [EngineeringDecision.from_dict(d) for d in data["decisions"]]
         issues = [EngineeringIssue.from_dict(i) for i in data["issues"]]
         provenance = [ProvenanceRecord.from_dict(r) for r in data["provenance"]]

@@ -18,8 +18,10 @@ from oracle.core import (
     ValidationError,
 )
 from tests.fixtures import make_building
+from tests.tiers import tier
 
 
+@tier("unit")
 class SectionAndGeometryTests(unittest.TestCase):
     def test_sections(self):
         self.assertEqual(Section.rectangular(225, 450).to_dict(),
@@ -52,6 +54,7 @@ class SectionAndGeometryTests(unittest.TestCase):
             Point2D(float("inf"), 0)
 
 
+@tier("unit")
 class ElementTests(unittest.TestCase):
     def setUp(self):
         self.b = make_building()

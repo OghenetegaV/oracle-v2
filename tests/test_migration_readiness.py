@@ -2,7 +2,7 @@
 
 Protects:
     Loading a genuine schema-0.1.0 project (tests/fixtures/schema_0_1_0_project.json, written by the
-    Phase 1 code at tag v2.0.0-phase1) into schema 0.2.0 without losing or inventing anything, refusal
+    Phase 1 code at tag v2.0.0-phase1) into the current schema without losing or inventing anything, refusal
     of unknown versions, unchanged strict-keys policy, the readiness rules (blocking issues,
     unresolved interpretations, assumed values, inferred-but-unconfirmed values), and that oracle.core
     imports nothing from the legacy scripts, adapters or CAD libraries.
@@ -29,9 +29,11 @@ from oracle.core import (
 )
 from oracle.core.migrations import MIGRATIONS, migrate
 from tests.fixtures import make_project
+from tests.tiers import tier
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 FIXTURE = REPO_ROOT / "tests" / "fixtures" / "schema_0_1_0_project.json"
+FIXTURE_0_2_0 = REPO_ROOT / "tests" / "fixtures" / "schema_0_2_0_project.json"
 B1, C5 = Target.element("B1"), Target.element("C5")
 
 
@@ -39,18 +41,19 @@ def old_file() -> dict:
     return json.loads(FIXTURE.read_text(encoding="utf-8"))
 
 
+@tier("unit")
 class MigrationTests(unittest.TestCase):
     def test_the_fixture_really_is_an_old_format_file(self):
         data = old_file()
         self.assertEqual(data["schema_version"], "0.1.0")
         for key in ("provenance", "value_status", "interpretations"):
             self.assertNotIn(key, data)
-        self.assertEqual(SCHEMA_VERSION, "0.2.0")
+        self.assertEqual(SCHEMA_VERSION, "0.4.0")
 
     def test_a_0_1_0_project_loads_with_nothing_lost_and_nothing_invented(self):
         old = old_file()
         p = OracleProject.from_dict(old)
-        self.assertEqual(p.schema_version, "0.2.0")
+        self.assertEqual(p.schema_version, "0.4.0")
         self.assertEqual((p.project_id, p.name, p.engineer, p.client, p.location, p.created_at, p.modified_at),
                          (old["project_id"], old["name"], old["engineer"], old["client"], old["location"],
                           old["created_at"], old["modified_at"]))
@@ -66,7 +69,7 @@ class MigrationTests(unittest.TestCase):
     def test_a_migrated_project_is_saved_as_the_current_schema_and_reloads(self):
         p = OracleProject.from_dict(old_file())
         text = p.to_json()
-        self.assertEqual(json.loads(text)["schema_version"], "0.2.0")
+        self.assertEqual(json.loads(text)["schema_version"], "0.4.0")
         for key in ("provenance", "value_status", "interpretations"):
             self.assertEqual(json.loads(text)[key], [])
         self.assertEqual(OracleProject.from_json(text).to_json(), text)
@@ -74,7 +77,7 @@ class MigrationTests(unittest.TestCase):
             path = Path(tmp) / "migrated.oracle.json"
             path.write_text(FIXTURE.read_text(encoding="utf-8"), encoding="utf-8")
             OracleProject.load(path).save(path)
-            self.assertEqual(json.loads(path.read_text(encoding="utf-8"))["schema_version"], "0.2.0")
+            self.assertEqual(json.loads(path.read_text(encoding="utf-8"))["schema_version"], "0.4.0")
 
     def test_a_migrated_project_can_take_the_new_records(self):
         p = OracleProject.from_dict(old_file())
@@ -89,7 +92,7 @@ class MigrationTests(unittest.TestCase):
         snapshot = copy.deepcopy(old)
         result = migrate(old)
         self.assertEqual(old, snapshot)
-        self.assertEqual(result["schema_version"], "0.2.0")
+        self.assertEqual(result["schema_version"], "0.4.0")
         self.assertIsNot(result["decisions"], old["decisions"])
 
     def test_current_schema_needs_no_migration(self):
@@ -97,7 +100,7 @@ class MigrationTests(unittest.TestCase):
         self.assertEqual(migrate(data), data)
 
     def test_unknown_and_future_versions_are_refused(self):
-        for version in ("9.0.0", "0.3.0", "0.0.1", "0.1", None, 2, ""):
+        for version in ("9.0.0", "0.5.0", "0.0.1", "0.1", None, 2, ""):
             data = old_file()
             if version is None:
                 del data["schema_version"]
@@ -105,7 +108,7 @@ class MigrationTests(unittest.TestCase):
                 data["schema_version"] = version
             with self.assertRaises(SchemaVersionError, msg=repr(version)):
                 OracleProject.from_dict(data)
-        self.assertEqual(sorted(MIGRATIONS), ["0.1.0"])
+        self.assertEqual(sorted(MIGRATIONS), ["0.1.0", "0.2.0", "0.3.0"])
 
     def test_non_objects_are_refused(self):
         for bad in ([], "0.1.0", None, 3):
@@ -140,6 +143,7 @@ class MigrationTests(unittest.TestCase):
             OracleProject.from_dict(data)
 
 
+@tier("unit")
 class ReadinessTests(unittest.TestCase):
     def test_a_project_without_a_building_is_not_ready(self):
         readiness = OracleProject.create("Empty", "E").readiness()
@@ -195,6 +199,7 @@ class ReadinessTests(unittest.TestCase):
         self.assertEqual([(b.kind, b.reference) for b in again.blockers], [(b.kind, b.reference) for b in readiness.blockers])
 
 
+@tier("integration")
 class CoreIndependenceTests(unittest.TestCase):
     def _imported(self, code):
         out = subprocess.run([sys.executable, "-B", "-c", code], cwd=str(REPO_ROOT), capture_output=True, text=True)
@@ -218,3 +223,50 @@ class CoreIndependenceTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+@tier("unit")
+class MigrationFrom020Tests(unittest.TestCase):
+    """0.2.0 -> 0.4.0 (through 0.3.0): the architectural interpretation section and the 0.4.0 registries arrive empty;
+    nothing else changes."""
+
+    def data(self) -> dict:
+        return json.loads(FIXTURE_0_2_0.read_text(encoding="utf-8"))
+
+    def test_the_fixture_is_a_genuine_0_2_0_file(self):
+        data = self.data()
+        self.assertEqual(data["schema_version"], "0.2.0")
+        self.assertNotIn("architecture", data)
+
+    def test_a_0_2_0_project_loads_with_nothing_lost_and_no_architecture_invented(self):
+        old = self.data()
+        p = OracleProject.from_dict(old)
+        self.assertEqual(p.schema_version, "0.4.0")
+        self.assertIsNone(p.architecture)
+        self.assertEqual(p.building.to_dict(), old["building"])
+        self.assertEqual([d.id for d in p.decisions], [d["id"] for d in old["decisions"]])
+        self.assertEqual([i.id for i in p.issues], [i["id"] for i in old["issues"]])
+        self.assertEqual(len(p.provenance), len(old["provenance"]))
+        self.assertEqual(len(p.value_statuses), len(old["value_status"]))
+
+    def test_migration_does_not_modify_its_input_and_round_trips(self):
+        old = self.data()
+        snapshot = copy.deepcopy(old)
+        result = migrate(old)
+        self.assertEqual(old, snapshot)
+        self.assertEqual(result["schema_version"], "0.4.0")
+        self.assertEqual(result["architectures"], [])
+        text = OracleProject.from_dict(old).to_json()
+        self.assertEqual(OracleProject.from_json(text).to_json(), text)
+
+    def test_an_architecture_key_in_a_0_2_0_file_is_refused(self):
+        data = self.data()
+        data["architecture"] = {}
+        with self.assertRaises(ValidationError):
+            OracleProject.from_dict(data)
+
+    def test_a_current_file_must_carry_the_architecture_key(self):
+        data = make_project().to_dict()
+        del data["architectures"]
+        with self.assertRaises(ValidationError):
+            OracleProject.from_dict(data)

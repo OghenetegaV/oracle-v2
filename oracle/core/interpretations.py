@@ -27,11 +27,13 @@ Consumers:
     oracle.core.readiness; oracle.core.issues (an issue may point at an interpretation); interpreters.
 
 Status:
-    Core (schema 0.2.0).
+    Core (schema 0.2.0; effects added in 0.4.0).
 
 Migration/Notes:
-    New in schema 0.2.0. Carrying out an accepted interpretation (creating the slab, the opening) is the
-    interpreter/adapter's job, not this module's.
+    New in schema 0.2.0. Schema 0.4.0 adds structured `effects` (oracle.core.effects) and the `applied`
+    record, so accepting an alternative changes the model through oracle.core.resolution instead of only marking a
+    status. Creating a structural object (a slab, an opening) from an accepted reading is still the interpreter's or
+    adapter's job, not this module's.
 """
 
 from __future__ import annotations
@@ -40,6 +42,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Mapping, Optional
 
+from .effects import Effect
 from .common import (
     Target, ValidationError, check_confidence, check_id, check_keys, check_optional_text, check_text,
     check_unique_ids, parse_enum,
@@ -67,9 +70,18 @@ class Interpretation:
     evidence: tuple = ()                  # provenance record IDs specific to this reading (shared ones are on the set)
     status: InterpretationStatus = InterpretationStatus.PROPOSED
     decision_id: Optional[str] = None     # the engineer decision that accepted or rejected it
+    effects: tuple = ()                   # what accepting it MEANS, as validated data (oracle.core.effects); empty: nothing
+    applied: tuple = ()                   # filled in on acceptance: what each effect actually did (ids, previous values)
 
     def __post_init__(self):
         check_id(self.id, "interpretation id")
+        self.effects = tuple(e if isinstance(e, Effect) else Effect.from_dict(e) for e in self.effects)
+        self.applied = tuple(dict(a) for a in self.applied)
+        if self.applied and self.status != InterpretationStatus.ACCEPTED:
+            raise ValidationError(f"Interpretation {self.id}: only an accepted interpretation has applied effects.")
+        if self.applied and len(self.applied) != len(self.effects):
+            raise ValidationError(f"Interpretation {self.id}: {len(self.applied)} applied record(s) for "
+                                  f"{len(self.effects)} effect(s).")
         check_text(self.meaning, "interpretation meaning")
         check_confidence(self.confidence, "interpretation confidence")
         check_optional_text(self.rationale, "interpretation rationale")
@@ -85,16 +97,23 @@ class Interpretation:
             check_id(self.decision_id, "interpretation decision_id")
 
     def to_dict(self) -> dict:
-        return {"id": self.id, "meaning": self.meaning, "confidence": self.confidence, "rationale": self.rationale,
-                "evidence": list(self.evidence), "status": self.status.value, "decision_id": self.decision_id}
+        out = {"id": self.id, "meaning": self.meaning, "confidence": self.confidence, "rationale": self.rationale,
+               "evidence": list(self.evidence), "status": self.status.value, "decision_id": self.decision_id}
+        if self.effects:
+            out["effects"] = [e.to_dict() for e in self.effects]
+        if self.applied:
+            out["applied"] = [dict(a) for a in self.applied]
+        return out
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> "Interpretation":
         check_keys(data, required={"id", "meaning", "confidence", "status"},
-                   optional={"rationale", "evidence", "decision_id"}, where="interpretation")
+                   optional={"rationale", "evidence", "decision_id", "effects", "applied"}, where="interpretation")
         return cls(id=data["id"], meaning=data["meaning"], confidence=data["confidence"],
                    rationale=data.get("rationale"), evidence=tuple(data.get("evidence") or ()),
-                   status=data["status"], decision_id=data.get("decision_id"))
+                   status=data["status"], decision_id=data.get("decision_id"),
+                   effects=tuple(Effect.from_dict(e) for e in data.get("effects") or ()),
+                   applied=tuple(data.get("applied") or ()))
 
 
 @dataclass

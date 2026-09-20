@@ -14,14 +14,16 @@ Dependencies:
     lisp_detail_generator; anthropic (chat).
 
 Consumers:
-    Started by 'Launch Oracle.bat' (pythonw); not imported by other modules.
+    Started by 'Launch Oracle.bat' (pythonw); not imported by other modules (tests import it to check that it still starts).
 
 Status:
     Legacy / Transitional (the working application).
 
 Migration:
-    Retained unchanged. Per docs/PHASE_1_ARCHITECTURE.md it will later populate an OracleProject
-    alongside self.data, and only afterwards be reworked.
+    The eight structural steps are retained unchanged. The only additions are the Architectural Drawing
+    workflow entry (a button on the welcome step; oracle/ui, imported lazily; docs/ARCHITECTURAL_WORKFLOW_UI.md)
+    and the '--architectural' start-up flag. Per docs/PHASE_1_ARCHITECTURE.md the wizard will later populate
+    an OracleProject alongside self.data, and only afterwards be reworked.
 
 Details (original module notes, retained):
     Oracle Wizard — a friendly, no-terminal, step-by-step guide from an
@@ -141,6 +143,7 @@ class Wizard(tk.Tk):
         # async work (GA/design generation, analysis) is in flight, and sharing one
         # queue would let the two consume each other's results.
         self.chat_queue = queue.Queue()
+        self.arch_workspace = None  # the Architectural Drawing workspace, while it is open (see open_architectural_workflow)
 
         self._build_chrome()
         self.after(100, self._maybe_ask_for_api_key)
@@ -176,6 +179,7 @@ class Wizard(tk.Tk):
         # caps the window's height and makes the overflow a scrollbar instead.
         content_area = tk.Frame(self, bg=COLOR_BG)
         content_area.pack(side="top", fill="both", expand=True)
+        self.content_area = content_area
         self.content_canvas = tk.Canvas(content_area, bg=COLOR_BG, highlightthickness=0)
         content_scrollbar = ttk.Scrollbar(content_area, orient="vertical", command=self.content_canvas.yview)
         self.content = tk.Frame(self.content_canvas, bg=COLOR_BG)
@@ -201,6 +205,7 @@ class Wizard(tk.Tk):
         footer = tk.Frame(self, bg="white", height=60)
         footer.pack(side="bottom", fill="x")
         footer.pack_propagate(False)
+        self.footer = footer
         self.status_label = tk.Label(footer, text="", font=FONT_SMALL, bg="white", fg=COLOR_MUTED)
         self.status_label.pack(side="left", padx=20)
         self.next_btn = tk.Button(footer, text="Next →", command=self._on_next,
@@ -705,8 +710,57 @@ class Wizard(tk.Tk):
         for i, title in enumerate(STEP_TITLES[1:], start=1):
             tk.Label(steps_frame, text=f"{i}.  {title}", font=FONT_BODY,
                      bg=COLOR_BG, anchor="w").pack(anchor="w", pady=3)
+        tk.Button(self.content, text="Architectural Drawing: read and review a DWG/DXF...",
+                  command=self.open_architectural_workflow, font=FONT_BODY, relief="flat",
+                  padx=14, pady=8, cursor="hand2").pack(anchor="w", pady=(24, 0))
+        tk.Label(self.content, bg=COLOR_BG, font=FONT_SMALL, fg=COLOR_MUTED, justify="left", wraplength=700,
+                 text="Separate from the structural steps above: Oracle interprets an architectural "
+                      "drawing (views, levels, observations) and you review what it found. "
+                      "Nothing here changes your drawing.").pack(anchor="w", pady=(4, 0))
         self.next_btn.config(text="Get started →")
         self.back_btn.config(state="disabled")
+
+    # ================= Architectural Drawing workspace (separate from the eight steps) =================
+    # An embedded screen (oracle/ui/architectural_workspace.py) that takes the window's content
+    # area and footer while it is open. It does not touch self.data or any step; leaving it
+    # restores the wizard exactly where it was. Imported lazily so the structural workflow
+    # never depends on it.
+
+    def open_architectural_workflow(self, initial_dir=None):
+        if self.arch_workspace is not None:
+            return self.arch_workspace
+        from oracle.ui.architectural_workspace import ArchitecturalWorkspace
+
+        def log(kind, message):
+            try:
+                from oracle_log import log_event
+                log_event(kind, message)
+            except Exception:
+                pass  # logging must never be why the workspace fails
+
+        self.content_area.pack_forget()
+        self.footer.pack_forget()
+        self.step_label.config(text="Architectural Drawing")
+        self.title("Oracle — Architectural Drawing")
+        self.geometry("1280x800")
+        self.minsize(1000, 640)
+        self.arch_workspace = ArchitecturalWorkspace(
+            self, on_exit=self.close_architectural_workflow,
+            initial_dir=initial_dir or str(INPUT_DIR), logger=log)
+        self.arch_workspace.pack(side="top", fill="both", expand=True)
+        return self.arch_workspace
+
+    def close_architectural_workflow(self):
+        if self.arch_workspace is None:
+            return
+        self.arch_workspace.destroy()
+        self.arch_workspace = None
+        self.title("Oracle — Structural Design Assistant")
+        self.minsize(760, 560)
+        self.geometry("820x600")
+        self.content_area.pack(side="top", fill="both", expand=True)
+        self.footer.pack(side="bottom", fill="x")
+        self.show_step(self.step_index)
 
     def advance_step_0(self):
         self.show_step(1)
@@ -1593,4 +1647,7 @@ class Wizard(tk.Tk):
 
 if __name__ == "__main__":
     app = Wizard()
+    # 'pythonw oracle_wizard.py --architectural' opens straight into the Architectural Drawing workspace.
+    if "--architectural" in sys.argv[1:]:
+        app.open_architectural_workflow()
     app.mainloop()

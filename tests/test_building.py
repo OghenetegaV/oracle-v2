@@ -19,8 +19,10 @@ from oracle.core import (
     Slab, ValidationError,
 )
 from tests.fixtures import make_building, make_levels
+from tests.tiers import tier
 
 
+@tier("unit")
 class LevelTests(unittest.TestCase):
     def test_levels_ordered_by_elevation_with_indices(self):
         b = BuildingModel("B", "Bldg")
@@ -74,6 +76,7 @@ class LevelTests(unittest.TestCase):
                 Level(bad, "Ground", 0)
 
 
+@tier("unit")
 class BuildingTests(unittest.TestCase):
     def test_build_and_query(self):
         b = make_building()

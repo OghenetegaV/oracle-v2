@@ -1,4 +1,4 @@
-# Core evidence model (schema 0.2.0)
+# Core evidence model (schema 0.2.0; extended by 0.3.0 and 0.4.0, see sections 7a and 7b)
 
 Status: implemented and tested in `oracle.core`. The architectural-DWG interpreter is **not** built; this is the
 data foundation it will depend on. Everything here is CAD-neutral: `oracle.core` imports no parser, DXF/DWG
@@ -111,6 +111,25 @@ registries. Unknown versions raise `SchemaVersionError`; unknown fields are stil
 migration is tested against a genuine `0.1.0` file written by the Phase 1 code (`tests/fixtures/schema_0_1_0_project.json`,
 from tag `v2.0.0-phase1`). Old code cannot read `0.2.0` files.
 
+## 7a. Schema 0.3.0 (Phase 3) and migration
+
+Changed: one optional top-level key, `architecture` (the interpretation of the source architectural drawing, or `null`), the
+`ARCHITECTURAL` target scope, and the `unreviewed_view` readiness blocker. The model is in `oracle/core/architecture.py` and is
+described in [PHASE_3_ARCHITECTURAL_INTERPRETATION.md](PHASE_3_ARCHITECTURAL_INTERPRETATION.md). `0.2.0` files load: the migration adds
+`architecture: null` and nothing else, refuses a `0.2.0` file that already has the key, and `0.1.0` files migrate through `0.2.0` first.
+Tested against a genuine `0.2.0` file written by the pre-Phase-3 code (`tests/fixtures/schema_0_2_0_project.json`). Old code cannot read `0.3.0` files.
+`set_value` now also applies to architectural objects (a view's title or level, a layer's class), with the same override history as for elements.
+
+## 7b. Schema 0.4.0 (Phase 3.5) and migration
+
+Changed: `architecture` became `architectures` (one interpretation per drawing source, told apart by id, revision, hash and interpretation instance); a new
+`evidence_links` registry (typed links from a level, element, node, grid line or decision to approved architectural evidence, each backed by an engineer
+decision); interpretation alternatives carry structured `effects` and an `applied` record, so accepting one changes the model (`oracle.core.resolution`);
+issues can name the interpretation set they are the face of; levels are settable through `set_value()` and gain identity/label/elevation-type fields;
+`trace()` walks the chain backwards and `approved_architecture()` is the read-only projection for the structural side. The drawing source is
+format-neutral. Everything is described in [PHASE_3_5_HARDENING.md](PHASE_3_5_HARDENING.md). `0.3.0` files load through an explicit migration that invents nothing
+(tested against a genuine trimmed `0.3.0` file, `tests/fixtures/schema_0_3_0_project.json`). Old code cannot read `0.4.0` files.
+
 ## 8. Drawing geometry is not analytical geometry
 
 Two lines crossing is not a structural connection. What the core keeps for the distinction: beams and walls connect
@@ -130,8 +149,8 @@ design (see the open questions).
 2. **Should `assumed` always block?** Currently yes for the whole project. A per-output rule (only values that reach
    the drawing) may be better.
 3. **`inferred` never blocks.** Arguably a low-confidence inference should. Needs a policy.
-4. **Field-level engineer changes** are limited to top-level element fields; levels, nodes and the design basis
-   cannot yet be overridden through `set_value`.
+4. **Field-level engineer changes** are limited to top-level fields of elements, levels and architectural objects (levels since schema 0.4.0); nodes, grid lines and the
+   design basis cannot yet be overridden through `set_value`.
 5. **Project-level provenance for the design basis** (grades, cover) is not supported (targets must be an object).
 6. **Interpretation to model.** Nothing yet turns an accepted interpretation into elements; an interpreter must.
 7. **Status per field is coarse** for composite values (a section is one field).

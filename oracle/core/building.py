@@ -6,7 +6,7 @@ Purpose:
     and reference integrity when anything is added.
 
 Role in Oracle:
-    The single representation of the building that the DXF importers, STAAD writer, design
+    The single representation of the building that the drawing importers, analysis writers, design
     engine and drawing generators will share once adapters exist.
 
 Dependencies:
@@ -22,7 +22,11 @@ Migration/Notes:
     Remains. The legacy parser's joints/members map onto Node/Beam/Column through
     oracle.adapters.legacy_ga. No structural calculation belongs here. replace_element() (schema 0.2.0
     work) lets an engineer's value change swap in a re-validated element; get_grid() completes lookup
-    by ID for every kind of target.
+    by ID for every kind of target. Schema 0.4.0 (Phase 3.5): a Level separates IDENTITY (id), engineer-facing
+    LABEL (name), the label the source drawing used (source_label) and the interpretation key it realises (key),
+    and says what its elevation IS (elevation_type: finished_floor / structural / datum / unspecified) with the
+    structural elevation kept separately and None until established; replace_levels() swaps changed levels in as
+    one validated step so that a change that moves several levels is atomic.
 """
 
 from __future__ import annotations
@@ -51,32 +55,85 @@ _LOAD_ORDER = (ElementKind.COLUMN, ElementKind.BEAM, ElementKind.WALL, ElementKi
 _KIND_KEYS = {k: k.value + "s" for k in ElementKind}
 
 
+ELEVATION_TYPES = ("unspecified", "finished_floor", "structural", "datum")
+
+
 @dataclass
 class Level:
-    """A horizontal datum. `index` is assigned by the building from elevation order (0 = lowest)."""
+    """A horizontal datum. `index` is assigned by the building from elevation order (0 = lowest).
+
+    IDENTITY IS NOT A LABEL. `id` is the stable identity that everything else refers to; `name` is the
+    engineer-facing label and may change; `source_label` is what the source drawing called it, kept verbatim
+    (an unfamiliar name such as "PODIUM" is preserved, never mapped onto a generic floor number); `key` is the
+    interpretation-layer identity this level realises, if it came from one.
+
+    ELEVATIONS ARE NOT INTERCHANGEABLE. `elevation_mm` is the elevation the level is currently placed at and
+    `elevation_type` says what it is: 'finished_floor' (a drawing's floor level), 'structural' (a structural
+    datum such as top of slab), 'datum' (a reference line such as natural ground), or 'unspecified' (the
+    historical default; nothing is claimed). `structural_elevation_mm` is the structural level when it is
+    established separately; None means NOT ESTABLISHED, and nothing derives it from a finished level."""
 
     id: str
     name: str
     elevation_mm: float
     storey_height_mm: Optional[float] = None  # height from this level up to the next; None if unknown/top
     index: int = -1
+    source_label: Optional[str] = None
+    elevation_type: str = "unspecified"
+    structural_elevation_mm: Optional[float] = None
+    key: Optional[str] = None
+    datum: Optional[str] = None               # what elevation_mm is measured from, in words, when known
 
     def __post_init__(self):
         check_id(self.id, "level id")
         check_text(self.name, "level name")
         check_number(self.elevation_mm, "level elevation_mm")
         check_optional_positive(self.storey_height_mm, "level storey_height_mm")
+        for name in ("source_label", "key", "datum"):
+            v = getattr(self, name)
+            if v is not None:
+                check_text(v, f"level {name}")
+        if self.elevation_type not in ELEVATION_TYPES:
+            raise ValidationError(f"Level {self.id}: elevation_type must be one of {ELEVATION_TYPES}, got {self.elevation_type!r}.")
+        if self.structural_elevation_mm is not None:
+            check_number(self.structural_elevation_mm, "level structural_elevation_mm")
+            if self.elevation_type == "structural" and abs(self.structural_elevation_mm - self.elevation_mm) > STOREY_HEIGHT_TOL_MM:
+                raise ValidationError(f"Level {self.id}: elevation_mm is already the structural elevation; "
+                                      "structural_elevation_mm disagrees with it.")
+
+    @property
+    def structural_elevation(self) -> Optional[float]:
+        """The structural elevation if one is established, else None. A finished-floor elevation is never returned
+        here: converting one into the other needs evidence or an engineer's decision."""
+        if self.elevation_type == "structural":
+            return self.elevation_mm
+        return self.structural_elevation_mm
 
     def to_dict(self) -> dict:
+        out = {"id": self.id, "name": self.name, "index": self.index, "elevation_mm": self.elevation_mm,
+               "storey_height_mm": self.storey_height_mm}
+        for name, default in (("source_label", None), ("elevation_type", "unspecified"),
+                              ("structural_elevation_mm", None), ("key", None), ("datum", None)):
+            value = getattr(self, name)
+            if value != default:          # older files and older code see exactly the fields they always saw
+                out[name] = value
+        return out
+
+    def to_full_dict(self) -> dict:
+        """Every field, defaults included: what a field-level check or an engineer change works on."""
         return {"id": self.id, "name": self.name, "index": self.index, "elevation_mm": self.elevation_mm,
-                "storey_height_mm": self.storey_height_mm}
+                "storey_height_mm": self.storey_height_mm, "source_label": self.source_label,
+                "elevation_type": self.elevation_type, "structural_elevation_mm": self.structural_elevation_mm,
+                "key": self.key, "datum": self.datum}
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> "Level":
-        check_keys(data, required={"id", "name", "elevation_mm"}, optional={"index", "storey_height_mm"},
-                   where="level")
+        check_keys(data, required={"id", "name", "elevation_mm"},
+                   optional={"index", "storey_height_mm", "source_label", "elevation_type", "structural_elevation_mm",
+                             "key", "datum"}, where="level")
         return cls(data["id"], data["name"], data["elevation_mm"], data.get("storey_height_mm"),
-                   data.get("index", -1))
+                   data.get("index", -1), data.get("source_label"), data.get("elevation_type", "unspecified"),
+                   data.get("structural_elevation_mm"), data.get("key"), data.get("datum"))
 
 
 @dataclass
@@ -185,6 +242,21 @@ class BuildingModel:
             lv.index = i
         self._changed()
         return level
+
+    def replace_levels(self, replacements: Iterable) -> None:
+        """Swap in changed versions of existing levels (same ids) as ONE step: the whole level list is
+        re-validated with them, and nothing changes if it would be invalid. Moving one level can move others
+        (a storey-height change shifts the levels above), so a level is never replaced on its own."""
+        replacements = list(replacements)
+        for lv in replacements:
+            if lv.id not in self._levels:
+                raise ValidationError(f"Unknown level {lv.id!r}.")
+        merged = {**self._levels, **{lv.id: lv for lv in replacements}}
+        _check_levels(list(merged.values()))
+        self._levels = merged
+        for i, lv in enumerate(self.levels):
+            lv.index = i
+        self._changed()
 
     # ---- grids ----
 

@@ -2,7 +2,7 @@
 
 Purpose:
     Errors (ValidationError, SchemaVersionError), SCHEMA_VERSION, ID rules, the Target reference
-    (project / level / element / node / grid line) and the small validators and strict key-checker used for
+    (project / level / element / node / grid line / architectural interpretation object) and the small validators and strict key-checker used for
     deserialisation.
 
 Role in Oracle:
@@ -21,7 +21,8 @@ Status:
 Migration/Notes:
     Remains. SCHEMA_VERSION is the project-file schema version (0.2.0), separate from the application
     version; change it only with a migration in oracle.core.migrations. 0.2.0 added the NODE and GRID
-    target scopes and the confidence, field-path and JSON-value validators.
+    target scopes and the confidence, field-path and JSON-value validators; 0.3.0 added the
+    ARCHITECTURAL target scope.
 """
 
 from __future__ import annotations
@@ -34,7 +35,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Iterable, Mapping, Optional
 
-SCHEMA_VERSION = "0.2.0"
+SCHEMA_VERSION = "0.4.0"
 
 # Two points/nodes closer than this on the same level are treated as the same point.
 POSITION_TOL_MM = 1.0
@@ -56,6 +57,7 @@ class TargetScope(str, Enum):
     ELEMENT = "element"
     NODE = "node"
     GRID = "grid"
+    ARCHITECTURAL = "architectural"  # a view, layer classification, observation, frame or the drawing itself
 
 
 @dataclass(frozen=True)
@@ -84,6 +86,10 @@ class Target:
     @classmethod
     def node(cls, node_id: str) -> "Target":
         return cls(TargetScope.NODE, node_id)
+
+    @classmethod
+    def architectural(cls, object_id: str) -> "Target":
+        return cls(TargetScope.ARCHITECTURAL, object_id)
 
     @classmethod
     def grid(cls, label: str) -> "Target":

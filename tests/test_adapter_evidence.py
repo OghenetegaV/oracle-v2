@@ -27,6 +27,7 @@ from oracle.core import (
 )
 from oracle.core.readiness import BlockerKind
 from tests.test_adapter_legacy_ga import ARCH_DXF, ELEV, GA_DXF, SIZES, adapt, crafted, gp, issues_where, parse
+from tests.tiers import tier
 
 SOURCE_NAME = "1st Flr, 2nd Flr and Roof GAs.dxf"
 
@@ -37,6 +38,7 @@ def status_of(project, kind, object_id, field):
     return record.status if record else None
 
 
+@tier("integration")
 class AdapterEvidenceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -247,6 +249,7 @@ class AdapterEvidenceTests(unittest.TestCase):
         self.assertEqual([i.to_dict() for i in again.issues], [i.to_dict() for i in self.p.issues])
 
 
+@tier("integration")
 class AdapterFailureEvidenceTests(unittest.TestCase):
     def test_a_failed_import_records_issues_but_no_invented_provenance_or_status(self):
         result = gp.parse_multilevel_ga(str(ARCH_DXF), storey_heights_m={"G": 0.0, "1": 3.0})

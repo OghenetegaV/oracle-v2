@@ -50,6 +50,42 @@ The inner `oracle/` directory is the Python package, not a copy of the repositor
 | `README.md` | Documentation | Developer overview and how to run/test | readers | New | RETAIN |
 | `.env.example` | Configuration | Placeholder variable name only, no value | humans | New | RETAIN |
 
+### Phase 3 and 3.5: architectural drawing intelligence and its hardened boundary (new; schema 0.4.0)
+
+| File | Category | Purpose | Used By | Status | Action |
+|---|---|---|---|---|---|
+| `oracle/core/architecture.py` | Core | Interpretation model: `DrawingSource`, `UnitEstimate`, `CoordinateFrame`, `LayerClassification`, `DrawingView`, `ArchitecturalObservation`, `HeightEvidence`, `CrossViewFinding`, container | `oracle.core.project`, `oracle.interpretation`, tests | Active | RETAIN |
+| `oracle/core/common.py`, `migrations.py`, `readiness.py`, `project.py`, `__init__.py` | Core | Modified for schemas 0.3.0 and 0.4.0: `SCHEMA_VERSION`, `ARCHITECTURAL` target scope, migrations `0.2.0 -> 0.3.0 -> 0.4.0`, unreviewed-view blocker, review/merge/split, `set_value` for architectural objects and levels, `architectures` and `evidence_links` registries, `link_evidence`, `trace`, `approved_architecture`, resolution on `accept_interpretation`, exports | everything | Active | RETAIN |
+| `oracle/ingestion/__init__.py`, `drawing.py`, `dxf_reader.py` | Ingestion | DWG (via ODA) / DXF -> neutral `DrawingDocument` (the only ezdxf reader in Phase 3) | `oracle.interpretation`, tests | Active, not connected to the app | RETAIN |
+| `oracle/interpretation/naming.py`, `layers.py`, `units.py` | Interpretation | Level-name normalisation and title classification (configurable), layer semantic classification, unit detection | `pipeline`, tests | Active | RETAIN |
+| `oracle/interpretation/segmentation.py`, `vertical.py`, `observations.py`, `alignment.py`, `reconcile.py` | Interpretation | View segmentation and classification, section/elevation level evidence, architectural observations, plan alignment, cross-view reconciliation | `pipeline`, tests | Active | RETAIN |
+| `oracle/interpretation/pipeline.py`, `report.py`, `advisor.py`, `__init__.py`, `__main__.py` | Interpretation | Orchestration into an `OracleProject` (also `align_view`, `establish_levels`, `suggest_elevations`), text report, bounded AI-advice hook, CLI | tests, engineers | Active, not connected to the app | RETAIN |
+| `tests/drawing_factory.py` | Test support | Builds synthetic architectural DXFs with known content | Phase 3 tests | Active | RETAIN |
+| `tests/test_interpretation_scenarios.py`, `test_engineer_review.py`, `test_architecture_core.py`, `test_naming_and_layers.py`, `test_ingestion_and_units.py`, `test_view_analysis.py` | Test | Phase 3 tests (the 15 scenarios, engineer review, core model, naming/layers, ingestion/units, view analysis) | test runner | Active | RETAIN |
+| `tests/test_real_architectural_drawing.py` | Test | Slow integration test on the real squash-court drawing (tier `slow`: not in the default run; `python -m tests slow`; skipped without the file or ODA) | test runner | Active | RETAIN |
+| `tests/test_migration_readiness.py` | Test | Modified: literal versions updated (0.3.0, then 0.4.0); added the 0.2.0 migration tests | test runner | Active | RETAIN |
+| `tests/fixtures/schema_0_2_0_project.json` | Sample Input | A genuine schema-0.2.0 project written by the pre-Phase-3 code, for the migration test | `tests/test_migration_readiness.py` | Reference | RETAIN |
+| `docs/PHASE_3_ARCHITECTURAL_INTERPRETATION.md` | Documentation | Phase 3 architecture, method, limitations, real-drawing results (superseded in part by Phase 3.5) | readers | New | RETAIN |
+| `oracle/core/effects.py`, `resolution.py` | Core | Structured, validated interpretation effects and their application under an engineer decision (schema 0.4.0) | `interpretations`, `project`, `oracle.interpretation`, tests | Active | RETAIN |
+| `oracle/core/evidence.py` | Core | `EvidenceLink`: typed link from a domain object to approved architectural evidence (schema 0.4.0) | `project`, `trace`, tests | Active | RETAIN |
+| `oracle/core/trace.py` | Core | `trace()`: the evidence chain backwards, with explicit gaps | `project`, tests | Active | RETAIN |
+| `oracle/core/approved.py` | Core | The read-only approved architecture projection (domain terms, millimetres, no CAD vocabulary) | `project`, the future structural layer, tests | Active | RETAIN |
+| `oracle/core/level_changes.py` | Core | Read-only planning of what changing one level means for the others | `project`, tests | Active | RETAIN |
+| `oracle/core/building.py`, `interpretations.py`, `issues.py`, `architecture.py` | Core | Modified for 0.4.0: level identity/label/elevation-type model and `replace_levels`; effects on alternatives; issue -> set link; format-neutral `DrawingSource` with revision and interpretation identity, `NAMED:` level keys, renamed hints | `project`, tests | Active | RETAIN |
+| `oracle/ingestion/drawing.py`, `dxf_reader.py` | Ingestion | Modified: the format's unit code and non-plotting layers are translated here (`declared_unit`, `LayerInfo.non_plotting`, `source_metadata()`) | `oracle.interpretation` | Active | RETAIN |
+| `oracle/interpretation/*.py` | Interpretation | Modified: `interpret_into` (further sources), effects and linked issues on every set, `establish_levels` (level model, links), `suggest_elevations` (accepted heights, named levels), `OBSERVATION_VOCABULARY`, `column_symbol`/`beam_symbol`, format codes removed from `units`/`layers`/`report` | tests, engineers | Active | RETAIN |
+| `tests/tiers.py`, `tests/__main__.py`, `tests/test_tiers.py`, `docs/TESTING.md` | Test infrastructure | The test-tier mechanism (unit / integration / slow / release; `ORACLE_TESTS` or `python -m tests`), its runner and its own tests, and the documentation of the commands and classification. `tests/__init__.py` carries the load hook | test runner, developers | Active | RETAIN |
+| `oracle/application/__init__.py`, `files.py`, `session.py`, `review_models.py`, `preview.py` | Application | Interface phase: the thin service between an interface and the backend: file checking, `ArchitecturalSession` (interpretation in honest stages, open/save with a geometry sidecar, every engineer action as a domain decision), read models per tab, drawing-preview and overlay models. No toolkit, no CAD library | `oracle.ui`, tests | Active | RETAIN |
+| `oracle/ui/__init__.py`, `architectural_workspace.py`, `review_panels.py`, `preview_canvas.py`, `dialogs.py`, `theme.py` | UI | Interface phase: the Architectural Drawing workspace (choose file, processing, review, decisions, save/open), embedded in the wizard window; imports `oracle.application` only | `oracle_wizard.py` (lazy), tests | Active | RETAIN |
+| `oracle_wizard.py` | UI (legacy) | Modified minimally: a second entry button on the welcome step, `open_architectural_workflow` / `close_architectural_workflow`, `--architectural`, and `content_area` / `footer` kept as attributes. The eight structural steps are unchanged | you | Active | RETAIN |
+| `oracle/interpretation/pipeline.py`, `__init__.py` | Interpretation | Modified, backward compatible: optional `progress(stage, "start"/"done")` callback and `STAGES` | `oracle.application` | Active | RETAIN |
+| `tests/test_application_unit.py`, `test_application_workflow.py`, `test_ui_workspace.py`, `test_real_drawing_workflow.py` | Test | Interface-phase tests: file checks and small models (unit); service, decisions, save/reopen, multi-source, layer boundaries (integration); Tk workspace and wizard (integration); the real drawing through the service and canvas (slow) | test runner | Active | RETAIN |
+| `docs/ARCHITECTURAL_WORKFLOW_UI.md` | Documentation | How to open the workflow, import another drawing, what each tab shows, limitations | readers | New | RETAIN |
+| `tests/support35.py`, `test_levels_hardening.py`, `test_resolution_effects.py`, `test_evidence_trace_projection.py`, `test_boundary_and_schema.py` | Test | Phase 3.5 tests and their shared builders | test runner | Active | RETAIN |
+| `tests/fixtures/schema_0_3_0_project.json` | Sample Input | A trimmed subset of a genuine schema-0.3.0 project written by the Phase 3 code, for the 0.3.0 -> 0.4.0 migration tests | `tests/test_boundary_and_schema.py` | Reference | RETAIN |
+| `docs/PHASE_3_5_AUDIT.md` | Documentation | The final Phase 3.5 architecture audit before Phase 4: what holds, what is bypassable, what is missing, and the ordered blockers | readers | New | RETAIN |
+| `docs/PHASE_3_5_HARDENING.md` | Documentation | What the Phase 3 review found, what changed, what is deferred, schema/migration, size profile | readers | New | RETAIN |
+
 ### Legacy application (root level, working)
 
 | File | Category | Purpose | Used By | Status | Action |
@@ -91,6 +127,7 @@ of all 34 Python files before and after.
 | `test_floor.dwg` | 21 KB | DWG version of the same drawing (presumably to test the ODA DWG-input path; not confirmed) | nothing in code | RETAIN |
 | `test_multiple_floors.dwg` | 25 KB | DWG multi-floor test drawing (presumably an ODA-input test; not confirmed) | nothing in code | RETAIN (owner decision; do not modify) |
 | `Truss.dxf` | 304 KB | A truss drawing; its parse produced 81 bytes of output, i.e. it does not fit either parser | nothing | RETAIN (owner decision; do not modify) |
+| `Sample Architectural Drawings - Proposed Squash Court Extension.dwg` | ~9 MB | Real Revit-exported architectural sheet set (20 sheets, ~24,000 entities): the Phase 3 real-world fixture. *Untracked* until the owner commits it. Never modified | `tests/test_real_architectural_drawing.py`, `python -m oracle.interpretation` | RETAIN (do not modify) |
 
 Nothing here was removed.
 
@@ -175,5 +212,7 @@ Decisions recorded by the owner after the first audit are marked (decided).
 8. `staad_v8i_integration.py`'s docstring says `oracle_pipeline.py` shells out to the 32-bit interpreter, but
    the subprocess call is in `staad_v8i_integration.py` itself. Left as written (documentation only).
 9. `HOW TO USE.md` still describes the old workflow only; that is correct for the current app.
-10. Legacy files use mixed line endings (some CRLF, some LF). Headers preserved each file's style. A
+10. Phase 3 engineering decisions (see the Phase 3 report and `docs/PHASE_3_ARCHITECTURAL_INTERPRETATION.md`): the unit of the squash-court
+    drawing (file says inches, drawing is millimetres), which of its two elevations each of FIRST FLOOR and ROOF means, and whether it has 3 or 5 levels.
+11. Legacy files use mixed line endings (some CRLF, some LF). Headers preserved each file's style. A
     `.gitattributes` would settle it; not added.

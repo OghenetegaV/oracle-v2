@@ -15,10 +15,12 @@ import unittest
 
 from oracle.core import DesignBasis, LevelLoading, SeismicBasis, ValidationError, WindBasis
 from tests.fixtures import make_design_basis
+from tests.tiers import tier
 
 REQUIRED = dict(design_code="BS 8110-1:1997", concrete_grade="C25/30", reinforcement_grade="Y (high-yield)")
 
 
+@tier("unit")
 class DesignBasisTests(unittest.TestCase):
     def test_minimal_basis_is_valid_and_defaults_nothing(self):
         db = DesignBasis(**REQUIRED)

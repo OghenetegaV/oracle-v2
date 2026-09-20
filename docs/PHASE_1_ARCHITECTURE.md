@@ -3,7 +3,9 @@
 Status: Phase 1 complete. The Phase 2 legacy GA adapter is described in [PHASE_2_ADAPTER.md](PHASE_2_ADAPTER.md), and the
 schema-0.2.0 additions to the core (provenance, value status, interpretations, decision authority, readiness) in
 [CORE_EVIDENCE_MODEL.md](CORE_EVIDENCE_MODEL.md). This document describes the original 0.1.0 design; where it says
-"schema 0.1.0" the current version is 0.2.0.
+"schema 0.1.0" the current version is 0.4.0 (0.2.0 added the evidence model; 0.3.0 added the architectural interpretation, see
+[PHASE_3_ARCHITECTURAL_INTERPRETATION.md](PHASE_3_ARCHITECTURAL_INTERPRETATION.md); 0.4.0 hardened its boundary, see
+[PHASE_3_5_HARDENING.md](PHASE_3_5_HARDENING.md)).
 
 ## 1. Current architecture (audit findings)
 
