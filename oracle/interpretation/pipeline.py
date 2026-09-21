@@ -611,7 +611,7 @@ def _order_by_heights(levels: list, heights: dict) -> Optional[list]:
 
 
 def align_view(project: OracleProject, view_id: str, translation: tuple, *, engineer: str, reason: str,
-               set_id: Optional[str] = None, interpretation_id: Optional[str] = None) -> EngineeringDecision:
+               set_id: Optional[str] = None, interpretation_id: Optional[str] = None, rotation_deg: float = 0.0) -> EngineeringDecision:
     """The engineer says how a plan lines up with the building: building = view-local + translation (source units of the
     view's own frame), which may be a value of their own rather than one of Oracle's candidates. One accepted ENGINEER
     decision is recorded; the alignment frame is created and the view's alignment_frame_id is set through set_value (so it
@@ -631,9 +631,10 @@ def align_view(project: OracleProject, view_id: str, translation: tuple, *, engi
         n += 1
     decision = EngineeringDecision(
         f"ENG-{n:04d}", engineer, DecisionSource.ENGINEER, Target.architectural(view_id),
-        DecisionCategory.OTHER, f"{view_id} lines up with the building by translation {tuple(translation)}.", reason=reason,
+        DecisionCategory.OTHER, f"{view_id} lines up with the building by translation {tuple(translation)}"
+        + (f" and a rotation of {float(rotation_deg):.4g} degrees." if rotation_deg else "."), reason=reason,
         status=DecisionStatus.ACCEPTED, field="alignment_frame_id", value=frame_id)
-    project.align_view(view_id, translation, decision)
+    project.align_view(view_id, translation, decision, rotation_deg=rotation_deg)
     if set_id is not None:
         project.accept_interpretation(set_id, interpretation_id, decision.id, apply_effects=False)
     return decision

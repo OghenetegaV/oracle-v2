@@ -32,6 +32,7 @@ from tkinter import filedialog, messagebox, ttk
 from typing import Optional
 
 from . import theme
+from .widgets import button
 
 
 class Prompts:
@@ -80,7 +81,7 @@ class Prompts:
         win.grab_set()
         win.wait_window()
 
-    def ask_reason(self, title: str, prompt: str, *, required: bool = False) -> Optional[str]:
+    def ask_reason(self, title: str, prompt: str, *, required: bool = False, ok_text: str = "Record decision") -> Optional[str]:
         """The engineer's reason for a decision (kept in the project). Returns "" for none, None for cancel."""
         win = self._form(title)
         result = {"value": None}
@@ -101,8 +102,8 @@ class Prompts:
 
         row = tk.Frame(win, bg=theme.BG)
         row.pack(fill="x", padx=16, pady=12)
-        tk.Button(row, text="Record decision", command=ok, bg=theme.ACCENT, fg="white", relief="flat", padx=12, pady=4).pack(side="right")
-        tk.Button(row, text="Cancel", command=win.destroy, relief="flat", padx=12, pady=4).pack(side="right", padx=6)
+        button(row, ok_text, ok, "primary").pack(side="right")
+        button(row, "Cancel", win.destroy).pack(side="right", padx=6)
         self._finish(win)
         return result["value"]
 
@@ -125,6 +126,170 @@ class Prompts:
         tk.Button(row, text="OK", command=ok, bg=theme.ACCENT, fg="white", relief="flat", padx=14, pady=4).pack(side="right")
         tk.Button(row, text="Cancel", command=win.destroy, relief="flat", padx=12, pady=4).pack(side="right", padx=6)
         win.bind("<Return>", lambda e: ok())
+        self._finish(win)
+        return result["value"]
+
+    # ---------------------------------------------------------------- the calmer review
+
+    def ask_reject_view(self, names: list, consequences: Optional[dict] = None) -> Optional[tuple]:
+        """Why should Oracle exclude these views? Returns (reason_code, explanation) or None. Nothing is deleted: the dialog says so."""
+        from oracle.application.guide import REJECT_REASONS
+        win = self._form("Reject view")
+        result = {"value": None}
+        subject = f"\u201c{names[0]}\u201d" if len(names) == 1 else f"these {len(names)} views"
+        tk.Label(win, text="Reject View", font=theme.H2, bg=theme.BG).pack(anchor="w", padx=20, pady=(16, 0))
+        tk.Label(win, text=f"Why should Oracle exclude {subject}?", font=theme.BODY, bg=theme.BG, wraplength=440, justify="left").pack(anchor="w", padx=20, pady=(6, 6))
+        code = tk.StringVar(value="")
+        for value, label in REJECT_REASONS:
+            tk.Radiobutton(win, text=label, value=value, variable=code, font=theme.BODY, bg=theme.BG, activebackground=theme.BG, anchor="w",
+                           selectcolor=theme.PANEL).pack(anchor="w", padx=28)
+        tk.Label(win, text="Optional explanation", font=theme.SMALL, bg=theme.BG, fg=theme.MUTED).pack(anchor="w", padx=20, pady=(10, 2))
+        box = tk.Text(win, width=56, height=3, font=theme.BODY, wrap="word", relief="flat", highlightthickness=1, highlightbackground=theme.LINE_STRONG)
+        box.pack(padx=20)
+        note = ("Rejecting this view removes it from the active architectural interpretation. The original drawing evidence and your decision "
+                "remain stored.")
+        if consequences and (consequences.get("questions") or consequences.get("issues")):
+            parts = []
+            if consequences.get("questions"):
+                parts.append(f"{consequences['questions']} open question(s)")
+            if consequences.get("issues"):
+                parts.append(f"{consequences['issues']} note(s)")
+            note += " It also closes " + " and ".join(parts) + " that only concern " + ("this view." if len(names) == 1 else "these views.")
+        tk.Label(win, text=note, font=theme.SMALL, bg=theme.BG, fg=theme.MUTED, wraplength=440, justify="left").pack(anchor="w", padx=20, pady=(10, 0))
+        message = tk.Label(win, text="", font=theme.SMALL, bg=theme.BG, fg=theme.RED)
+        message.pack(anchor="w", padx=20)
+
+        def ok():
+            if not code.get():
+                message.config(text="Choose a reason.")
+                return
+            text = box.get("1.0", "end").strip()
+            if code.get() == "other" and not text:
+                message.config(text="Say why in the explanation.")
+                return
+            result["value"] = (code.get(), text)
+            win.destroy()
+
+        row = tk.Frame(win, bg=theme.BG)
+        row.pack(fill="x", padx=20, pady=14)
+        button(row, "Reject View", ok, "danger").pack(side="right")
+        button(row, "Cancel", win.destroy).pack(side="right", padx=8)
+        self._finish(win)
+        return result["value"]
+
+    def ask_engineer_input(self, subject: str, suggestions: Optional[list] = None) -> Optional[tuple]:
+        """Ask Engineer: what should Oracle understand? Free text, not limited to Oracle's suggestions. Returns (statement, notes) or None."""
+        win = self._form("Ask Engineer")
+        result = {"value": None}
+        tk.Label(win, text="Ask Engineer", font=theme.H2, bg=theme.BG).pack(anchor="w", padx=20, pady=(16, 0))
+        tk.Label(win, text=subject, font=theme.SMALL, bg=theme.BG, fg=theme.MUTED, wraplength=500, justify="left").pack(anchor="w", padx=20, pady=(2, 6))
+        if suggestions:
+            tk.Label(win, text="Oracle's suggestions: " + "; ".join(suggestions[:4]), font=theme.SMALL, bg=theme.BG, fg=theme.AMBER,
+                     wraplength=500, justify="left").pack(anchor="w", padx=20, pady=(0, 6))
+        tk.Label(win, text="What should Oracle understand this to be?", font=theme.BOLD, bg=theme.BG).pack(anchor="w", padx=20)
+        statement = tk.Text(win, width=62, height=5, font=theme.BODY, wrap="word", relief="flat", highlightthickness=1, highlightbackground=theme.LINE_STRONG)
+        statement.pack(padx=20, pady=(2, 8))
+        statement.focus_set()
+        tk.Label(win, text="Additional notes (optional)", font=theme.SMALL, bg=theme.BG, fg=theme.MUTED).pack(anchor="w", padx=20)
+        notes = tk.Text(win, width=62, height=3, font=theme.BODY, wrap="word", relief="flat", highlightthickness=1, highlightbackground=theme.LINE_STRONG)
+        notes.pack(padx=20, pady=(2, 6))
+        tk.Label(win, text="Your words are saved exactly as written, with your name and the time, as engineer input. Oracle does not change the model "
+                           "from free text; it keeps it as guidance for the next stage.", font=theme.SMALL, bg=theme.BG, fg=theme.MUTED, wraplength=500,
+                 justify="left").pack(anchor="w", padx=20)
+        message = tk.Label(win, text="", font=theme.SMALL, bg=theme.BG, fg=theme.RED)
+        message.pack(anchor="w", padx=20)
+
+        def ok():
+            text = statement.get("1.0", "end").strip()
+            if not text:
+                message.config(text="Write what Oracle should understand.")
+                return
+            result["value"] = (text, notes.get("1.0", "end").strip())
+            win.destroy()
+
+        row = tk.Frame(win, bg=theme.BG)
+        row.pack(fill="x", padx=20, pady=14)
+        button(row, "Submit Engineer Input", ok, "primary").pack(side="right")
+        button(row, "Cancel", win.destroy).pack(side="right", padx=8)
+        self._finish(win)
+        return result["value"]
+
+    def ask_number(self, title: str, prompt: str, unit: str = "") -> Optional[str]:
+        """One number typed by the engineer (the caller validates it). Returns the text or None."""
+        return self.ask_text(title, prompt + (f" ({unit})" if unit else ""), "")
+
+    def ask_level(self, view_name: str, options: list) -> Optional[str]:
+        """Which floor is this plan? `options` is [(label, key)]; 'Another name...' lets the engineer type one. Returns a level key or None."""
+        win = self._form("Set floor")
+        result = {"value": None}
+        tk.Label(win, text=f"Which floor is \u201c{view_name}\u201d?", font=theme.H2, bg=theme.BG, wraplength=420, justify="left").pack(anchor="w", padx=20, pady=(16, 6))
+        choice = tk.StringVar(value="")
+        for label, key in options:
+            tk.Radiobutton(win, text=label, value=key, variable=choice, font=theme.BODY, bg=theme.BG, activebackground=theme.BG, anchor="w",
+                           selectcolor=theme.PANEL).pack(anchor="w", padx=28)
+        other = tk.Frame(win, bg=theme.BG)
+        other.pack(anchor="w", padx=28, pady=(2, 0))
+        tk.Radiobutton(other, text="Another name:", value="__other__", variable=choice, font=theme.BODY, bg=theme.BG, activebackground=theme.BG,
+                       selectcolor=theme.PANEL).pack(side="left")
+        typed = tk.Entry(other, width=22, font=theme.BODY)
+        typed.pack(side="left", padx=4)
+        message = tk.Label(win, text="", font=theme.SMALL, bg=theme.BG, fg=theme.RED)
+        message.pack(anchor="w", padx=20)
+
+        def ok():
+            if not choice.get():
+                message.config(text="Choose a floor.")
+                return
+            if choice.get() == "__other__":
+                name = "_".join(typed.get().strip().upper().split())
+                if not name:
+                    message.config(text="Type the floor's name.")
+                    return
+                result["value"] = f"NAMED:{name}"
+            else:
+                result["value"] = choice.get()
+            win.destroy()
+
+        row = tk.Frame(win, bg=theme.BG)
+        row.pack(fill="x", padx=20, pady=14)
+        button(row, "Set floor", ok, "primary").pack(side="right")
+        button(row, "Cancel", win.destroy).pack(side="right", padx=8)
+        self._finish(win)
+        return result["value"]
+
+    def ask_view_type(self, view_name: str, current_label: str, choices: list, current_key: str) -> Optional[tuple]:
+        """Change View Type: the view is NOT rejected, only re-classified. `choices` is [(key, label)]. Returns (key, note) or None."""
+        win = self._form("Change View Type")
+        result = {"value": None}
+        tk.Label(win, text="Change View Type", font=theme.H2, bg=theme.BG).pack(anchor="w", padx=20, pady=(16, 0))
+        tk.Label(win, text=f"\u201c{view_name}\u201d", font=theme.SMALL, bg=theme.BG, fg=theme.MUTED).pack(anchor="w", padx=20)
+        tk.Label(win, text=f"Oracle currently identifies this view as:  {current_label.upper()}", font=theme.BODY, bg=theme.BG, wraplength=440,
+                 justify="left").pack(anchor="w", padx=20, pady=(8, 2))
+        tk.Label(win, text="What should it be?", font=theme.BOLD, bg=theme.BG).pack(anchor="w", padx=20, pady=(4, 2))
+        choice = tk.StringVar(value=current_key)
+        for key, label in choices:
+            tk.Radiobutton(win, text=label, value=key, variable=choice, font=theme.BODY, bg=theme.BG, activebackground=theme.BG, anchor="w",
+                           selectcolor=theme.PANEL).pack(anchor="w", padx=28)
+        tk.Label(win, text="Optional note", font=theme.SMALL, bg=theme.BG, fg=theme.MUTED).pack(anchor="w", padx=20, pady=(8, 2))
+        note = tk.Text(win, width=56, height=3, font=theme.BODY, wrap="word", relief="flat", highlightthickness=1, highlightbackground=theme.LINE_STRONG)
+        note.pack(padx=20)
+        tk.Label(win, text="The view stays; only its type changes. Oracle's original reading and your correction are both kept in the history. "
+                           "To exclude a view instead, use Reject View.", font=theme.SMALL, bg=theme.BG, fg=theme.MUTED, wraplength=440,
+                 justify="left").pack(anchor="w", padx=20, pady=(8, 0))
+        message = tk.Label(win, text="", font=theme.SMALL, bg=theme.BG, fg=theme.RED)
+        message.pack(anchor="w", padx=20)
+
+        def ok():
+            if choice.get() == current_key:
+                message.config(text="Choose a different type, or Cancel.")
+                return
+            result["value"] = (choice.get(), note.get("1.0", "end").strip())
+            win.destroy()
+
+        row = tk.Frame(win, bg=theme.BG)
+        row.pack(fill="x", padx=20, pady=14)
+        button(row, "Apply Engineer Decision", ok, "primary").pack(side="right")
+        button(row, "Cancel", win.destroy).pack(side="right", padx=8)
         self._finish(win)
         return result["value"]
 

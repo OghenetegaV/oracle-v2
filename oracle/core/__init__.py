@@ -28,8 +28,9 @@ from .architecture import (
     DrawingView, HeightEvidence, HintKind, LayerClassification, ReviewStatus, UnitEstimate, ViewType,
 )
 from .approved import (
-    ApprovedArchitecture, ApprovedHint, ApprovedLevel, ApprovedObservation, ApprovedView,
+    ApprovedArchitecture, ApprovedHint, ApprovedLevel, ApprovedObservation, ApprovedView, EngineerGuidance,
 )
+from .clarifications import EngineerClarification
 from .building import ELEVATION_TYPES, BuildingModel, GridLine, Level, Node
 from .common import SCHEMA_VERSION, SchemaVersionError, Target, TargetScope, ValidationError
 from .decisions import DecisionCategory, DecisionSource, DecisionStatus, EngineeringDecision
@@ -50,7 +51,7 @@ from .readiness import Blocker, BlockerKind, ProjectReadiness
 from .value_status import ENGINEER_STATUSES, ValueStatus, ValueStatusRecord
 
 __all__ = [
-    "ApprovedArchitecture", "ApprovedHint", "ApprovedLevel", "ApprovedObservation", "ApprovedView", "ELEVATION_TYPES",
+    "EngineerClarification", "EngineerGuidance", "ApprovedArchitecture", "ApprovedHint", "ApprovedLevel", "ApprovedObservation", "ApprovedView", "ELEVATION_TYPES",
     "Effect", "EffectKind", "EvidenceLink", "EvidenceRelation", "Trace", "TraceStep",
     "BuildingModel", "GridLine", "Level", "Node", "SCHEMA_VERSION", "SchemaVersionError", "Target", "TargetScope",
     "ValidationError", "DecisionCategory", "DecisionSource", "DecisionStatus", "EngineeringDecision",

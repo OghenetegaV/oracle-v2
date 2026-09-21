@@ -43,13 +43,15 @@ from pathlib import Path
 from typing import Callable, Optional
 
 from oracle.core import (
-    DecisionCategory, DecisionSource, DecisionStatus, EngineeringDecision, InterpretationStatus, OracleProject, ReviewStatus, SchemaVersionError,
+    DecisionCategory, DecisionSource, DecisionStatus, Effect, EffectKind, EngineeringDecision, InterpretationStatus, OracleProject, ReviewStatus, SchemaVersionError,
     SetStatus, Target, TargetScope, ValidationError, ViewType,
 )
 from oracle.ingestion import DrawingDocument, IngestionError, read_drawing
 from oracle.interpretation import align_view, establish_levels, interpret_document, interpret_into, suggest_elevations
+from oracle.interpretation.layers import block_meaning
 from oracle.interpretation.pipeline import STAGES as PIPELINE_STAGES
 
+from . import alignment, guide
 from . import review_models as rm
 from .files import DrawingFileInfo, inspect_drawing_file
 from .preview import DrawingPreview, Overlay, union_box
@@ -378,7 +380,9 @@ class ArchitecturalSession:
     def preview(self, source_id=None) -> Optional[DrawingPreview]:
         sid = self.source_id(source_id)
         if sid not in self._previews and sid in self.documents:
-            self._previews[sid] = DrawingPreview(self.documents[sid])
+            made = DrawingPreview(self.documents[sid])
+            made.set_structural_filter({l.name: l.semantic_class for l in self.project.architecture_of(sid).layers}, block_meaning)
+            self._previews[sid] = made
         return self._previews.get(sid)
 
     def view_overlays(self, source_id=None) -> Overlay:
@@ -387,7 +391,7 @@ class ArchitecturalSession:
         style = {ReviewStatus.PROPOSED: "view_proposed", ReviewStatus.ACCEPTED: "view_accepted", ReviewStatus.REJECTED: "view_rejected"}
         o = Overlay()
         for v in arch.views:
-            if v.review != ReviewStatus.SUPERSEDED and v.view_type != ViewType.TITLE_BLOCK:
+            if v.review not in (ReviewStatus.SUPERSEDED, ReviewStatus.REJECTED) and v.view_type != ViewType.TITLE_BLOCK:
                 o.rects.append((v.bbox, style.get(v.review, "view_proposed"), v.title or v.id, v.id))
         return o
 
@@ -399,7 +403,7 @@ class ArchitecturalSession:
         obj = arch.get(object_id)
         box = getattr(obj, "bbox", None)
         if box:
-            o.rects.append((box, style, getattr(obj, "title", None) or object_id, object_id))
+            o.rects.append((box, style, (self.view_name(object_id) if hasattr(obj, "view_type") else getattr(obj, "title", None)) or object_id, object_id))
             o.focus = box
         geometry = getattr(obj, "geometry", None)
         if geometry:
@@ -442,12 +446,13 @@ class ArchitecturalSession:
         numbers = [int(m.group(1)) for d in self.project.decisions if (m := re.fullmatch(r"ENG-(\d+)", d.id))]
         return f"ENG-{(max(numbers) if numbers else 0) + 1:04d}"
 
-    def _decision(self, target: Target, instruction: str, reason: Optional[str], *, field: Optional[str] = None, value=None) -> EngineeringDecision:
+    def _decision(self, target: Target, instruction: str, reason: Optional[str], *, field: Optional[str] = None, value=None,
+                  reason_code: Optional[str] = None) -> EngineeringDecision:
         if not self.engineer:
             raise ActionRefused("Enter the engineer's name before making a decision.")
         return EngineeringDecision(self._next_decision_id(), self.engineer, DecisionSource.ENGINEER, target,
                                    DecisionCategory.ARCHITECTURAL_COORDINATION, instruction, reason=(reason or "").strip() or None,
-                                   status=DecisionStatus.ACCEPTED, field=field, value=value)
+                                   status=DecisionStatus.ACCEPTED, field=field, value=value, reason_code=reason_code)
 
     def _refuse(self, exc: Exception):
         self.log("architectural.action_refused", "".join(traceback.format_exception(type(exc), exc, exc.__traceback__)))
@@ -507,6 +512,179 @@ class ArchitecturalSession:
             self._refuse(exc)
         self.dirty = True
         return decision
+
+    # ------------------------------------------------------------ the calmer review: rejecting views, reconsidering, Ask Engineer
+
+    def _closable_sets(self, project: OracleProject, view_ids: set) -> list:
+        """Open questions that are ABOUT the views being rejected (they would ask the engineer about something excluded)."""
+        found = []
+        for s in project.interpretation_sets:
+            if s.status != SetStatus.OPEN:
+                continue
+            targets = set()
+            if s.subject is not None and s.subject.scope == TargetScope.ARCHITECTURAL:
+                targets.add(s.subject.id)
+            for alt in s.alternatives:
+                for e in alt.effects:
+                    if e.kind in (EffectKind.ALIGN_VIEW, EffectKind.SPLIT_VIEW):
+                        targets.add(e.params["view_id"])
+                    elif e.kind == EffectKind.SET_VALUE and e.target.scope == TargetScope.ARCHITECTURAL:
+                        targets.add(e.target.id)
+            affected = set(rm.affected_ids(project, s))
+            if (targets and targets <= view_ids) or (affected and affected <= view_ids):
+                found.append(s)
+        return found
+
+    def _closable_issues(self, project: OracleProject, view_ids: set, closing_sets: list) -> list:
+        set_ids = {s.id for s in closing_sets}
+        found = []
+        for row in rm.build_issue_rows(project, include_closed=False):
+            if row.set_id in set_ids or (row.affected and set(row.affected) <= view_ids):
+                found.append(row.id)
+        return found
+
+    def rejection_consequences(self, view_ids) -> dict:
+        """What rejecting these views would also close, so the dialog can say so before the engineer decides."""
+        ids = set(view_ids)
+        sets = self._closable_sets(self.project, ids)
+        return {"questions": len(sets), "issues": len(self._closable_issues(self.project, ids, sets))}
+
+    def reject_views(self, view_ids, reason_code: str, explanation: str = "") -> EngineeringDecision:
+        """The engineer excludes views from the architectural interpretation, with a reason. Nothing is deleted: the views, their
+        observations and their evidence stay in the project, marked rejected under one recorded engineer decision that carries the
+        reason. Questions and issues that only concern the rejected views are closed by the same decision (and say so)."""
+        ids = list(dict.fromkeys(view_ids))
+        if not ids:
+            raise ActionRefused("Select at least one view.")
+        if reason_code not in guide.REJECT_REASON_LABEL:
+            raise ActionRefused("Choose why the view should be excluded.")
+        if reason_code == "other" and not (explanation or "").strip():
+            raise ActionRefused("Say why the view should be excluded.")
+        names = guide.view_names(self.project, self.source_id_of(ids[0]))
+        text = f"Rejected {len(ids)} view(s) ({', '.join(names.get(i, i) for i in ids[:4])}): {guide.REJECT_REASON_LABEL[reason_code]}"
+        decision = self._decision(Target.architectural(ids[0]), text, explanation, reason_code=reason_code)
+
+        def apply(project: OracleProject) -> None:
+            project.review_views(ids, decision, accept=False)
+            sets = self._closable_sets(project, set(ids))
+            issues = self._closable_issues(project, set(ids), sets)
+            for s in sets:
+                for alt in s.alternatives:
+                    if alt.status == InterpretationStatus.PROPOSED:
+                        project.reject_interpretation(s.id, alt.id, decision.id)
+            for issue_id in issues:
+                if project.get_issue(issue_id).is_open:
+                    project.accept_issue(issue_id, "Closed because the engineer rejected the view it concerns.", decision.id)
+
+        try:
+            apply(OracleProject.from_dict(self.project.to_dict()))          # rehearse: a refusal changes nothing
+            apply(self.project)
+        except ValidationError as exc:
+            self._refuse(exc)
+        self.dirty = True
+        return decision
+
+    def reconsider_views(self, view_ids, reason: str = "") -> EngineeringDecision:
+        """Take an earlier decision about views back to 'needs review'. A new engineer decision; the earlier one stays on record."""
+        ids = list(view_ids)
+        if not ids:
+            raise ActionRefused("Select at least one view.")
+        decision = self._decision(Target.architectural(ids[0]), f"Reconsidered {len(ids)} view(s): {', '.join(ids[:6])}", reason)
+        try:
+            self.project.reconsider_views(ids, decision)
+        except ValidationError as exc:
+            self._refuse(exc)
+        self.dirty = True
+        return decision
+
+    def source_id_of(self, object_id: str) -> str:
+        arch = next((a for a in self.project.architectures if a.has(object_id)), None)
+        if arch is None:
+            raise ActionRefused("That item is not part of this project.")
+        return arch.drawing.id
+
+    def ask_engineer(self, target_id: Optional[str], statement: str, notes: str = "", set_id: Optional[str] = None):
+        """The engineer says, in their own words, what Oracle should understand. The words are kept verbatim as an engineer clarification
+        (identity, time, target, decision); if it answers an open question, that question is settled by the engineer's own answer. The words
+        are never turned into model changes here: they are guidance flagged for the next stage."""
+        statement = (statement or "").strip()
+        if not statement:
+            raise ActionRefused("Write what Oracle should understand.")
+        target = Target.architectural(target_id) if target_id and target_id != "project" else Target.project()
+        decision = self._decision(target, statement, notes)
+        try:
+            if set_id:
+                clarification = self.project.answer_with_engineer_input(set_id, decision, statement, notes, target=target)
+            else:
+                clarification = self.project.record_clarification(decision, target, statement, notes)
+        except ValidationError as exc:
+            self._refuse(exc)
+        self.dirty = True
+        return clarification
+
+    def answer_height(self, set_id: str, height_mm: float):
+        """The engineer supplies a storey height for an open height question. A VALUE, so it is applied as a structured effect."""
+        s = self.project.get_interpretation_set(set_id)
+        effect = next((e for a in s.alternatives for e in a.effects if e.kind == EffectKind.ACCEPT_HEIGHT), None)
+        if effect is None:
+            raise ActionRefused("This question is not about a storey height.")
+        try:
+            mm = float(height_mm)
+        except (TypeError, ValueError):
+            raise ActionRefused("Enter the height in millimetres.") from None
+        if mm <= 0:
+            raise ActionRefused("A storey height must be more than zero.")
+        from oracle.interpretation.naming import level_display_name
+        low, high = effect.params["from_level"], effect.params["to_level"]
+        statement = f"The height from {level_display_name(low)} to {level_display_name(high)} is {mm:g} mm."
+        target = s.subject if s.subject is not None else Target.architectural(self.source_id())
+        decision = self._decision(target, statement, "Value entered by the engineer.")
+        try:
+            clarification = self.project.answer_with_engineer_input(
+                set_id, decision, statement, "Value entered by the engineer.", target=target, effects=(Effect.accept_height(low, high, mm),))
+        except ValidationError as exc:
+            self._refuse(exc)
+        self.dirty = True
+        return clarification
+
+    # ------------------------------------------------------------ the calmer review: what to show
+
+    def overview(self, source_id=None):
+        return guide.build_overview(self.project, self.source_id(source_id))
+
+    def queue(self, source_id=None):
+        return guide.build_queue(self.project, self.source_id(source_id))
+
+    def view_entries(self, source_id=None):
+        return guide.build_view_entries(self.project, self.source_id(source_id))
+
+    def rejected_views(self, source_id=None):
+        return guide.build_rejected(self.project, self.source_id(source_id))
+
+    def card(self, key: str, source_id=None):
+        return guide.build_card(self.project, self.source_id(source_id), key)
+
+    def source_choices(self) -> list:
+        """[(source id, label)]: the drawing's name and revision, for the source picker."""
+        return guide.source_choices(self.project) if self.project else []
+
+    def view_name(self, view_id: str) -> str:
+        return guide.view_names(self.project, self.source_id_of(view_id)).get(view_id, view_id)
+
+    def clarification_rows(self) -> list:
+        """The engineer's own words, oldest first: (id, when, who, about, statement, what happened to it)."""
+        rows = []
+        for c in self.project.clarifications:
+            about = "the project"
+            if c.target.scope == TargetScope.ARCHITECTURAL:
+                try:
+                    sid = self.source_id_of(c.target.id)
+                    about = guide.view_names(self.project, sid).get(c.target.id) or ("the drawing" if c.target.id == sid else c.target.id)
+                except ActionRefused:
+                    about = c.target.id
+            fate = "applied to the model" if c.disposition == "applied" else "kept as guidance for the next stage"
+            rows.append((c.id, guide.when(c.created_at), c.author, about, c.statement, fate))
+        return rows
 
     def review_observations(self, observation_ids, *, accept: bool = True, reason: str = "") -> EngineeringDecision:
         ids = list(observation_ids)
@@ -571,11 +749,103 @@ class ArchitecturalSession:
             raise ActionRefused(f"A view's {field} is not edited here.")
         return self.set_value(Target.architectural(view_id), field, value, reason)
 
-    def align_view(self, view_id: str, dx: float, dy: float, reason: str = "", *, set_id=None, interpretation_id=None) -> EngineeringDecision:
+    def align_view(self, view_id: str, dx: float, dy: float, reason: str = "", *, set_id=None, interpretation_id=None,
+                   rotation_deg: float = 0.0) -> EngineeringDecision:
         try:
             decision = align_view(self.project, view_id, (float(dx), float(dy)), engineer=self.engineer, reason=(reason or "Set by the engineer."),
-                                  set_id=set_id, interpretation_id=interpretation_id)
+                                  set_id=set_id, interpretation_id=interpretation_id, rotation_deg=float(rotation_deg))
         except (ValidationError, ValueError) as exc:
+            self._refuse(exc)
+        self.dirty = True
+        return decision
+
+    # ------------------------------------------------------------ point-pick alignment, split preview, view type
+
+    def view_box(self, view_id: str) -> tuple:
+        return self.project.architecture_of(self.source_id_of(view_id)).get(view_id).bbox
+
+    def plan_choices(self, view_id: str) -> list:
+        """The other floor plans of the same source that this plan can be aligned to: [(id, name)], plans already on the building frame first."""
+        arch = self.project.architecture_of(self.source_id_of(view_id))
+        names = guide.view_names(self.project, arch.drawing.id)
+        plans = [v for v in arch.views if v.view_type == ViewType.FLOOR_PLAN and v.id != view_id and v.review not in (ReviewStatus.SUPERSEDED, ReviewStatus.REJECTED)
+                 and v.frame_id is not None]
+        plans.sort(key=lambda v: (v.variant is not None, v.alignment_frame_id is None, v.id))
+        return [(v.id, names[v.id]) for v in plans]
+
+    def alignment_preview(self, view_id: str, reference_id: str, pairs: list):
+        """Where the plan would land on the reference plan, from the engineer's point pairs. Reads only: the project is not touched."""
+        arch = self.project.architecture_of(self.source_id_of(view_id))
+        view, reference = arch.get(view_id), arch.get(reference_id)
+        if view.view_type != ViewType.FLOOR_PLAN:
+            raise ActionRefused("Only a floor plan can be aligned to another plan.")
+        preview = self.preview(arch.drawing.id) if arch.drawing.id in self.documents else None
+        paths = [preview.paths[i].points for i in preview.paths_for(view.entity_ids) if not preview.is_hidden(i, True)] if preview is not None else []
+        try:
+            return alignment.solve(arch, view, reference, pairs, paths)
+        except (ValueError, ValidationError) as exc:
+            raise ActionRefused(str(exc)) from None
+
+    def apply_alignment(self, view_id: str, reference_id: str, pairs: list, note: str = "") -> EngineeringDecision:
+        """The engineer accepts the previewed alignment: recorded as one engineer decision (through the ordinary alignment mechanism). The source
+        coordinates are not changed; the points they picked are kept in the decision's reason."""
+        solution = self.alignment_preview(view_id, reference_id, pairs)
+        names = guide.view_names(self.project, self.source_id_of(view_id))
+        picked = "; ".join(f"({p[0]:.1f}, {p[1]:.1f}) on {names[view_id]} = ({q[0]:.1f}, {q[1]:.1f}) on {names.get(reference_id, reference_id)}" for p, q in pairs)
+        reason = (note.strip() + " " if note and note.strip() else "") + f"Point-picked alignment (source units): {picked}."
+        return self.align_view(view_id, solution.translation[0], solution.translation[1], reason, rotation_deg=solution.rotation_deg)
+
+    def _split_plan(self, view_id: str, axis: str, coordinate: float):
+        arch = next((a for a in self.project.architectures if a.has(view_id)), None)
+        if arch is None:
+            raise ActionRefused(f"{view_id} is not a view of this project.")
+        view = arch.get(view_id)
+        preview = self.preview(arch.drawing.id) if arch.drawing.id in self.documents else None
+        if preview is None:
+            raise ActionRefused("Splitting needs the drawing linework to place each entity; use 'Reload linework' first.")
+        axis = axis.lower()
+        if axis not in ("x", "y"):
+            raise ActionRefused("Split along x or y.")
+        low, high = [], []
+        for eid in view.entity_ids:
+            box = preview.entity_boxes.get(eid)
+            if box is None:
+                continue
+            centre = (box[0] + box[2]) / 2 if axis == "x" else (box[1] + box[3]) / 2
+            (low if centre < float(coordinate) else high).append(eid)
+        if not low or not high or len(low) + len(high) != len(view.entity_ids):
+            raise ActionRefused(f"Splitting {self.view_name(view_id)} along {axis} = {float(coordinate):g} would leave one part empty; choose a dividing line inside the view.")
+        return arch, view, preview, axis, low, high
+
+    def split_preview(self, view_id: str, axis: str, coordinate: float) -> dict:
+        """What splitting would make: the dividing line and the two resulting regions. Reads only."""
+        _arch, view, preview, axis, low, high = self._split_plan(view_id, axis, coordinate)
+        x0, y0, x1, y1 = view.bbox
+        line = [(coordinate, y0), (coordinate, y1)] if axis == "x" else [(x0, coordinate), (x1, coordinate)]
+        return {"line": line, "low": preview.box_of_entities(low), "high": preview.box_of_entities(high), "counts": (len(low), len(high))}
+
+    def change_view_type(self, view_id: str, new_type: str, note: str = "") -> EngineeringDecision:
+        """The engineer corrects what kind of view Oracle took this to be. The view is NOT rejected or replaced: its type is changed by an engineer
+        decision that keeps the previous value (Oracle's reading), so both stay in the history."""
+        arch = next((a for a in self.project.architectures if a.has(view_id)), None)
+        if arch is None:
+            raise ActionRefused(f"{view_id} is not a view of this project.")
+        allowed = {value for value, _label in guide.VIEW_TYPE_CHOICES}
+        if new_type not in allowed:
+            raise ActionRefused("Choose one of: " + ", ".join(label for _v, label in guide.VIEW_TYPE_CHOICES) + ".")
+        view = arch.get(view_id)
+        if view.review == ReviewStatus.SUPERSEDED:
+            raise ActionRefused("This view was merged or split; change the views that replaced it.")
+        if view.view_type.value == new_type:
+            raise ActionRefused(f"This view is already a {guide.type_label(new_type).lower()}.")
+        name = guide.view_names(self.project, arch.drawing.id)[view_id]
+        text = f"Corrected the type of {name} from {guide.type_label(view.view_type.value)} to {guide.type_label(new_type)}"
+        if view.level_key and new_type != "floor_plan":
+            text += f" (a section, elevation or detail has no floor level, so the level {guide.level_display_name(view.level_key)} no longer applies)"
+        decision = self._decision(Target.architectural(view_id), text, note, field="view_type", value=new_type)
+        try:
+            self.project.change_view_type(view_id, new_type, decision)
+        except ValidationError as exc:
             self._refuse(exc)
         self.dirty = True
         return decision
@@ -600,25 +870,7 @@ class ArchitecturalSession:
 
     def split_view(self, view_id: str, axis: str, coordinate: float, reason: str = "") -> list:
         """Split a view along x = coordinate or y = coordinate (source drawing units), each source entity going to the side its centre is on."""
-        arch = next((a for a in self.project.architectures if a.has(view_id)), None)
-        if arch is None:
-            raise ActionRefused(f"{view_id} is not a view of this project.")
-        view = arch.get(view_id)
-        preview = self.preview(arch.drawing.id) if arch.drawing.id in self.documents else None
-        if preview is None:
-            raise ActionRefused("Splitting needs the drawing linework to place each entity; use 'Reload linework' first.")
-        axis = axis.lower()
-        if axis not in ("x", "y"):
-            raise ActionRefused("Split along x or y.")
-        low, high = [], []
-        for eid in view.entity_ids:
-            box = preview.entity_boxes.get(eid)
-            if box is None:
-                continue
-            centre = (box[0] + box[2]) / 2 if axis == "x" else (box[1] + box[3]) / 2
-            (low if centre < float(coordinate) else high).append(eid)
-        if not low or not high or len(low) + len(high) != len(view.entity_ids):
-            raise ActionRefused(f"Splitting {view_id} along {axis} = {coordinate:g} would leave one part empty (or lose entities); choose a line inside the view.")
+        _arch, _view, preview, axis, low, high = self._split_plan(view_id, axis, coordinate)
         ids = self._next_view_ids(2)
         parts = {ids[0]: {"bbox": preview.box_of_entities(low), "entity_ids": low}, ids[1]: {"bbox": preview.box_of_entities(high), "entity_ids": high}}
         decision = self._decision(Target.architectural(view_id), f"Split {view_id} along {axis} = {float(coordinate):g} into {ids[0]} and {ids[1]}", reason)

@@ -1,44 +1,54 @@
 """Oracle — Interface Theme
 
 Purpose:
-    The fonts and colours of the architectural workspace, taken from the existing Oracle wizard (Segoe UI, the same background, accent and
-    muted grey) plus the few status colours a review screen needs: amber for proposed or unresolved, green for engineer-approved, red for
-    blocked or rejected. One place, so the workspace looks like part of Oracle and stays restrained.
+    The fonts and colours of the architectural workspace. A restrained engineering palette: a cool neutral background, white surfaces, one
+    steel-blue accent for the single primary action of a screen, and three status tones used sparingly and always with words (amber for
+    "needs review", green for "accepted", muted red for "rejected"). Three voices are given distinct, quiet colours so an engineer can tell
+    them apart at a glance: ORACLE SUGGESTS (amber), ENGINEER INPUT (blue) and ENGINEER DECISION (green).
 
 Role in Oracle:
-    Presentation constants only; no logic and no widgets.
+    Presentation constants only; no logic and no widgets. The wizard's own constants are unchanged; this module is for oracle.ui only.
 
 Dependencies:
     None.
 
 Consumers:
-    oracle.ui.architectural_workspace, oracle.ui.dialogs, oracle.ui.preview_canvas.
+    oracle.ui.*
 
 Status:
-    Interface (interface phase).
+    Interface (interface refinement phase).
 
 Migration/Notes:
-    The wizard's own constants (oracle_wizard.py) are duplicated here on purpose: the wizard is a root script that this package must not
-    import. If they change, change both.
+    Names used by earlier interface code (BG, PANEL, ACCENT, MUTED, LINE, GREEN, AMBER, RED and their _BG tints, the font tuples) are kept.
 """
 
-BG = "#f4f6f8"
+BG = "#f5f6f8"
 PANEL = "#ffffff"
-ACCENT = "#1f6feb"
-MUTED = "#6b7280"
-LINE = "#c9d1d9"
-GREEN = "#137333"
-GREEN_BG = "#e6f4ea"
-AMBER = "#92400e"
-AMBER_BG = "#fef3c7"
-RED = "#b91c1c"
-RED_BG = "#fde8e8"
+INK = "#1f2933"
+MUTED = "#6b7683"
+LINE = "#e2e5ea"
+LINE_STRONG = "#b4bcc7"
+ACCENT = "#2f5d9e"
+ACCENT_HOVER = "#264c82"
+ACCENT_SOFT = "#e9eff8"
+HOVER = "#eef0f3"
+GREEN = "#2f7a50"
+GREEN_BG = "#eaf4ee"
+AMBER = "#9a5b00"
+AMBER_BG = "#fbf3e3"
+RED = "#a63d3d"
+RED_BG = "#f8ecec"
 
-TITLE = ("Segoe UI", 16, "bold")
-SUBTITLE = ("Segoe UI", 11)
-BODY = ("Segoe UI", 10)
-BOLD = ("Segoe UI", 10, "bold")
-SMALL = ("Segoe UI", 9)
+FONT = "Segoe UI"
+DISPLAY = (FONT, 20, "bold")
+TITLE = (FONT, 16, "bold")
+H2 = (FONT, 13, "bold")
+SUBTITLE = (FONT, 11)
+BODY = (FONT, 10)
+BOLD = (FONT, 10, "bold")
+SMALL = (FONT, 9)
+CAPTION = (FONT, 8, "bold")
 MONO = ("Consolas", 9)
 
 STATE_COLORS = {"ready": (GREEN, GREEN_BG), "review": (AMBER, AMBER_BG), "blocked": (RED, RED_BG)}
+TONE = {"ok": GREEN, "attention": AMBER, "note": MUTED, "rejected": RED}

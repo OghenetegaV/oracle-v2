@@ -109,7 +109,17 @@ def _0_3_0_to_0_4_0(data: dict) -> dict:
     return data
 
 
-MIGRATIONS = {"0.1.0": _0_1_0_to_0_2_0, "0.2.0": _0_2_0_to_0_3_0, "0.3.0": _0_3_0_to_0_4_0}
+def _0_4_0_to_0_5_0(data: dict) -> dict:
+    """0.5.0 adds the `clarifications` registry (the engineer's free-form input, kept verbatim). Decisions gain an optional
+    `reason_code` and interpretation alternatives an optional `origin`; both are simply absent in an older project."""
+    if "clarifications" in data:  # a 0.4.0 file cannot have this; overwriting it would silently discard data
+        raise ValidationError("A schema 0.4.0 project has unknown field(s): ['clarifications'].")
+    data["clarifications"] = []
+    data["schema_version"] = "0.5.0"
+    return data
+
+
+MIGRATIONS = {"0.1.0": _0_1_0_to_0_2_0, "0.2.0": _0_2_0_to_0_3_0, "0.3.0": _0_3_0_to_0_4_0, "0.4.0": _0_4_0_to_0_5_0}
 
 
 def migrate(data: Mapping[str, Any]) -> dict:

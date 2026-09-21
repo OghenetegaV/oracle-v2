@@ -32,6 +32,7 @@ Migration/Notes:
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Mapping, Optional
@@ -40,6 +41,9 @@ from .common import (
     Target, TargetScope, ValidationError, check_field_path, check_id, check_json_value, check_keys,
     check_optional_text, check_text, check_timestamp, parse_enum, utc_now_iso,
 )
+
+
+_REASON_CODE = re.compile(r"^[a-z][a-z0-9_]{0,39}$")
 
 
 class DecisionStatus(str, Enum):
@@ -99,6 +103,7 @@ class EngineeringDecision:
     field: Optional[str] = None            # a structured value change: which field of the target...
     value: Any = None                      # ...to what (JSON form, e.g. {"shape": "rectangular", ...})
     previous_value: Any = None             # what the value was, filled in when the change is applied
+    reason_code: Optional[str] = None      # a short category for the reason (e.g. 'duplicate' for a rejected view), when there is one
 
     def __post_init__(self):
         check_id(self.id, "decision id")
@@ -141,6 +146,9 @@ class EngineeringDecision:
                 raise ValidationError(f"Decision {self.id}: a field change needs the new value.")
         elif self.value is not None or self.previous_value is not None:
             raise ValidationError(f"Decision {self.id}: value and previous_value only make sense with a field.")
+        if self.reason_code is not None:
+            if not isinstance(self.reason_code, str) or not _REASON_CODE.match(self.reason_code):
+                raise ValidationError(f"Decision {self.id}: reason_code must be lowercase letters, digits and '_' (got {self.reason_code!r}).")
         check_json_value(self.value, "decision value")
         check_json_value(self.previous_value, "decision previous_value")
 
@@ -159,7 +167,7 @@ class EngineeringDecision:
             "overrides_recommendation": self.overrides_recommendation,
             "oracle_recommendation": self.oracle_recommendation, "superseded_by": self.superseded_by,
             "responds_to": self.responds_to, "field": self.field, "value": self.value,
-            "previous_value": self.previous_value,
+            "previous_value": self.previous_value, "reason_code": self.reason_code,
         }
 
     @classmethod
@@ -167,7 +175,7 @@ class EngineeringDecision:
         check_keys(data, required={"id", "created_at", "author", "source", "target", "category", "instruction",
                                    "status"},
                    optional={"reason", "overrides_recommendation", "oracle_recommendation", "superseded_by",
-                             "responds_to", "field", "value", "previous_value"},
+                             "responds_to", "field", "value", "previous_value", "reason_code"},
                    where="decision")
         return cls(
             id=data["id"], author=data["author"], source=data["source"], target=Target.from_dict(data["target"]),
@@ -175,5 +183,5 @@ class EngineeringDecision:
             status=data["status"], overrides_recommendation=data.get("overrides_recommendation", False),
             oracle_recommendation=data.get("oracle_recommendation"), superseded_by=data.get("superseded_by"),
             created_at=data["created_at"], responds_to=data.get("responds_to"), field=data.get("field"),
-            value=data.get("value"), previous_value=data.get("previous_value"),
+            value=data.get("value"), previous_value=data.get("previous_value"), reason_code=data.get("reason_code"),
         )

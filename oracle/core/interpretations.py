@@ -72,6 +72,7 @@ class Interpretation:
     decision_id: Optional[str] = None     # the engineer decision that accepted or rejected it
     effects: tuple = ()                   # what accepting it MEANS, as validated data (oracle.core.effects); empty: nothing
     applied: tuple = ()                   # filled in on acceptance: what each effect actually did (ids, previous values)
+    origin: str = "oracle"                # "oracle": proposed by an interpreter; "engineer": the engineer's own answer (oracle.core.clarifications)
 
     def __post_init__(self):
         check_id(self.id, "interpretation id")
@@ -82,6 +83,8 @@ class Interpretation:
         if self.applied and len(self.applied) != len(self.effects):
             raise ValidationError(f"Interpretation {self.id}: {len(self.applied)} applied record(s) for "
                                   f"{len(self.effects)} effect(s).")
+        if self.origin not in ("oracle", "engineer"):
+            raise ValidationError(f"Interpretation {self.id}: origin must be 'oracle' or 'engineer', got {self.origin!r}.")
         check_text(self.meaning, "interpretation meaning")
         check_confidence(self.confidence, "interpretation confidence")
         check_optional_text(self.rationale, "interpretation rationale")
@@ -103,17 +106,19 @@ class Interpretation:
             out["effects"] = [e.to_dict() for e in self.effects]
         if self.applied:
             out["applied"] = [dict(a) for a in self.applied]
+        if self.origin != "oracle":
+            out["origin"] = self.origin
         return out
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> "Interpretation":
         check_keys(data, required={"id", "meaning", "confidence", "status"},
-                   optional={"rationale", "evidence", "decision_id", "effects", "applied"}, where="interpretation")
+                   optional={"rationale", "evidence", "decision_id", "effects", "applied", "origin"}, where="interpretation")
         return cls(id=data["id"], meaning=data["meaning"], confidence=data["confidence"],
                    rationale=data.get("rationale"), evidence=tuple(data.get("evidence") or ()),
                    status=data["status"], decision_id=data.get("decision_id"),
                    effects=tuple(Effect.from_dict(e) for e in data.get("effects") or ()),
-                   applied=tuple(data.get("applied") or ()))
+                   applied=tuple(data.get("applied") or ()), origin=data.get("origin", "oracle"))
 
 
 @dataclass
@@ -177,6 +182,22 @@ class InterpretationSet:
             if a.status == InterpretationStatus.PROPOSED:
                 a.status = InterpretationStatus.ACCEPTED if a is chosen else InterpretationStatus.REJECTED
                 a.decision_id = decision_id
+
+    def accept_engineer_answer(self, answer: Interpretation, decision_id: str) -> None:
+        """The engineer answers in their own words: `answer` (origin "engineer") joins the set as the accepted reading and the
+        still-proposed Oracle readings are rejected under the same decision. Nothing changes if the set is already settled."""
+        if self.status != SetStatus.OPEN:
+            raise ValidationError(f"Interpretation set {self.id} is already {self.status.value}.")
+        if answer.origin != "engineer" or answer.decision_id != decision_id:
+            raise ValidationError("Only an engineer's own answer, made under this decision, can be added this way.")
+        if answer.meaning.strip().lower() in {a.meaning.strip().lower() for a in self.alternatives}:
+            raise ValidationError(f"Interpretation set {self.id} already lists that meaning.")
+        if any(a.id == answer.id for a in self.alternatives):
+            raise ValidationError(f"Interpretation set {self.id} already has an alternative {answer.id!r}.")
+        for a in self.alternatives:
+            if a.status == InterpretationStatus.PROPOSED:
+                a.status, a.decision_id = InterpretationStatus.REJECTED, decision_id
+        self.alternatives.append(answer)
 
     def reject(self, interpretation_id: str, decision_id: str) -> None:
         a = self.get(interpretation_id)

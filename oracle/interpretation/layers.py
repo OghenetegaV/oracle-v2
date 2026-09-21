@@ -203,6 +203,11 @@ def _block_tokens(block_name: str) -> Optional[str]:
     return None
 
 
+def block_meaning(block_name: str) -> Optional[str]:
+    """What a block's NAME says it is (door, window, stair, lift, column, furniture, casework, sanitary, equipment), or None."""
+    return _block_tokens(block_name)
+
+
 def classify_layers(document, config: Optional[LayerConfig] = None) -> list:
     """One verdict per layer that has entities (and per layer in the table), ordered by name."""
     stats: dict = {}

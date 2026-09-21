@@ -345,12 +345,12 @@ class MigrationFrom030(unittest.TestCase):
         self.assertEqual(d["schema_version"], "0.3.0")
         self.assertIn("architecture", d)
         self.assertNotIn("architectures", d)
-        self.assertEqual(SCHEMA_VERSION, "0.4.0")
+        self.assertEqual(SCHEMA_VERSION, "0.5.0")
 
     def test_it_loads_and_keeps_everything(self):
         old = self.data()
         p = OracleProject.from_dict(old)
-        self.assertEqual(p.schema_version, "0.4.0")
+        self.assertEqual(p.schema_version, "0.5.0")
         arch = p.architecture
         a0 = old["architecture"]
         self.assertEqual([len(p.architectures)], [1])
@@ -400,7 +400,7 @@ class MigrationFrom030(unittest.TestCase):
         snapshot = copy.deepcopy(old)
         migrated = migrate(old)
         self.assertEqual(old, snapshot)
-        self.assertEqual(migrated["schema_version"], "0.4.0")
+        self.assertEqual(migrated["schema_version"], "0.5.0")
         text = OracleProject.from_dict(old).to_json()
         self.assertEqual(OracleProject.from_json(text).to_json(), text)
 
@@ -414,17 +414,17 @@ class MigrationFrom030(unittest.TestCase):
                 OracleProject.from_dict(d)
 
     def test_future_and_unknown_versions_are_still_refused(self):
-        for version in ("0.5.0", "1.0.0", "0.0.9", "", None, 4):
+        for version in ("0.6.0", "1.0.0", "0.0.9", "", None, 4):
             d = self.data()
             d["schema_version"] = version
             with self.assertRaises(SchemaVersionError, msg=repr(version)):
                 OracleProject.from_dict(d)
-        self.assertEqual(sorted(MIGRATIONS), ["0.1.0", "0.2.0", "0.3.0"])
+        self.assertEqual(sorted(MIGRATIONS), ["0.1.0", "0.2.0", "0.3.0", "0.4.0"])
 
-    def test_older_fixtures_reach_0_4_0_too(self):
+    def test_older_fixtures_reach_the_current_schema_too(self):
         for name in ("schema_0_1_0_project.json", "schema_0_2_0_project.json"):
             p = OracleProject.from_dict(json.loads((FIXTURES / name).read_text(encoding="utf-8")))
-            self.assertEqual((p.schema_version, p.architectures, p.evidence_links), ("0.4.0", [], []), name)
+            self.assertEqual((p.schema_version, p.architectures, p.evidence_links), ("0.5.0", [], []), name)
 
     def test_an_empty_0_3_0_project_migrates_to_no_sources(self):
         d = self.data()

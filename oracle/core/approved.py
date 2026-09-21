@@ -36,7 +36,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from .architecture import ReviewStatus
-from .common import Target, ValidationError
+from .common import Target, TargetScope, ValidationError
 from .interpretations import SetStatus
 from .value_status import ENGINEER_STATUSES, ValueStatus
 
@@ -92,6 +92,21 @@ class ApprovedHint:
 
 
 @dataclass(frozen=True)
+class EngineerGuidance:
+    """The engineer's own words about something in this drawing, kept verbatim and NOT applied to the model: the next stage must
+    read it and act on it through a structured decision (or leave it)."""
+    clarification_id: str
+    target_scope: str
+    target_id: str
+    statement: str
+    notes: Optional[str]
+    author: str
+    recorded_at: str
+    decision_id: str
+    disposition: str                               # "guidance": preserved intent, not applied
+
+
+@dataclass(frozen=True)
 class ApprovedArchitecture:
     source_id: str
     revision: Optional[str]
@@ -103,6 +118,7 @@ class ApprovedArchitecture:
     levels: tuple
     blockers: tuple                                # reasons this model must not yet be relied on
     field_notes: dict = field(default_factory=dict)
+    engineer_guidance: tuple = ()                  # the engineer's free-form input about this drawing (verbatim, not applied)
 
     @property
     def ready(self) -> bool:
@@ -114,7 +130,8 @@ class ApprovedArchitecture:
         return {"source_id": self.source_id, "revision": self.revision, "unit": self.unit,
                 "unit_confirmed": self.unit_confirmed, "ready": self.ready, "blockers": list(self.blockers),
                 "views": [row(v) for v in self.views], "observations": [row(o) for o in self.observations],
-                "hints": [row(h) for h in self.hints], "levels": [row(l) for l in self.levels]}
+                "hints": [row(h) for h in self.hints], "levels": [row(l) for l in self.levels],
+                "engineer_guidance": [row(g) for g in self.engineer_guidance]}
 
 
 def _pick_source(project, source_id):
@@ -188,5 +205,8 @@ def approved_architecture(project, source_id: Optional[str] = None) -> ApprovedA
         blockers.append(f"Approved plan(s) not aligned to the building frame: {unaligned[:5]}.")
     if not levels:
         blockers.append("No building levels have been established by an engineer decision.")
+    guidance = tuple(
+        EngineerGuidance(c.id, c.target.scope.value, c.target.id, c.statement, c.notes, c.author, c.created_at, c.decision_id, c.disposition)
+        for c in project.clarifications if c.target.scope == TargetScope.PROJECT or arch.has(c.target.id))
     return ApprovedArchitecture(source.id, source.revision, "mm", unit_confirmed, tuple(views), tuple(observations),
-                                tuple(hints), levels, tuple(blockers))
+                                tuple(hints), levels, tuple(blockers), engineer_guidance=guidance)

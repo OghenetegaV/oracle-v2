@@ -155,6 +155,7 @@ class Wizard(tk.Tk):
         header = tk.Frame(self, bg="white", height=70)
         header.pack(side="top", fill="x")
         header.pack_propagate(False)
+        self.header = header
         tk.Label(header, text="Oracle", font=("Segoe UI", 16, "bold"),
                  bg="white", fg=COLOR_ACCENT).pack(side="left", padx=20, pady=15)
         self.step_label = tk.Label(header, text="", font=FONT_SMALL, bg="white", fg=COLOR_MUTED)
@@ -710,7 +711,7 @@ class Wizard(tk.Tk):
         for i, title in enumerate(STEP_TITLES[1:], start=1):
             tk.Label(steps_frame, text=f"{i}.  {title}", font=FONT_BODY,
                      bg=COLOR_BG, anchor="w").pack(anchor="w", pady=3)
-        tk.Button(self.content, text="Architectural Drawing: read and review a DWG/DXF...",
+        tk.Button(self.content, text="Architectural Drawing Review: read and review a DWG/DXF...",
                   command=self.open_architectural_workflow, font=FONT_BODY, relief="flat",
                   padx=14, pady=8, cursor="hand2").pack(anchor="w", pady=(24, 0))
         tk.Label(self.content, bg=COLOR_BG, font=FONT_SMALL, fg=COLOR_MUTED, justify="left", wraplength=700,
@@ -740,10 +741,12 @@ class Wizard(tk.Tk):
 
         self.content_area.pack_forget()
         self.footer.pack_forget()
-        self.step_label.config(text="Architectural Drawing")
-        self.title("Oracle — Architectural Drawing")
-        self.geometry("1280x800")
-        self.minsize(1000, 640)
+        self.header.pack_forget()      # the workspace has its own top bar; the wizard's header would only cost 70 px of drawing height
+        self.title("Oracle — Architectural Drawing Review")
+        width = min(1280, self.winfo_screenwidth() - 60)
+        height = min(800, self.winfo_screenheight() - 110)
+        self.geometry(f"{width}x{height}+{max(0, (self.winfo_screenwidth() - width) // 2)}+{max(0, (self.winfo_screenheight() - height) // 3)}")
+        self.minsize(min(1000, width), min(600, height))
         self.arch_workspace = ArchitecturalWorkspace(
             self, on_exit=self.close_architectural_workflow,
             initial_dir=initial_dir or str(INPUT_DIR), logger=log)
@@ -758,6 +761,7 @@ class Wizard(tk.Tk):
         self.title("Oracle — Structural Design Assistant")
         self.minsize(760, 560)
         self.geometry("820x600")
+        self.header.pack(side="top", fill="x")
         self.content_area.pack(side="top", fill="both", expand=True)
         self.footer.pack(side="bottom", fill="x")
         self.show_step(self.step_index)

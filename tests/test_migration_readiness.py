@@ -48,12 +48,12 @@ class MigrationTests(unittest.TestCase):
         self.assertEqual(data["schema_version"], "0.1.0")
         for key in ("provenance", "value_status", "interpretations"):
             self.assertNotIn(key, data)
-        self.assertEqual(SCHEMA_VERSION, "0.4.0")
+        self.assertEqual(SCHEMA_VERSION, "0.5.0")
 
     def test_a_0_1_0_project_loads_with_nothing_lost_and_nothing_invented(self):
         old = old_file()
         p = OracleProject.from_dict(old)
-        self.assertEqual(p.schema_version, "0.4.0")
+        self.assertEqual(p.schema_version, "0.5.0")
         self.assertEqual((p.project_id, p.name, p.engineer, p.client, p.location, p.created_at, p.modified_at),
                          (old["project_id"], old["name"], old["engineer"], old["client"], old["location"],
                           old["created_at"], old["modified_at"]))
@@ -69,7 +69,7 @@ class MigrationTests(unittest.TestCase):
     def test_a_migrated_project_is_saved_as_the_current_schema_and_reloads(self):
         p = OracleProject.from_dict(old_file())
         text = p.to_json()
-        self.assertEqual(json.loads(text)["schema_version"], "0.4.0")
+        self.assertEqual(json.loads(text)["schema_version"], "0.5.0")
         for key in ("provenance", "value_status", "interpretations"):
             self.assertEqual(json.loads(text)[key], [])
         self.assertEqual(OracleProject.from_json(text).to_json(), text)
@@ -77,7 +77,7 @@ class MigrationTests(unittest.TestCase):
             path = Path(tmp) / "migrated.oracle.json"
             path.write_text(FIXTURE.read_text(encoding="utf-8"), encoding="utf-8")
             OracleProject.load(path).save(path)
-            self.assertEqual(json.loads(path.read_text(encoding="utf-8"))["schema_version"], "0.4.0")
+            self.assertEqual(json.loads(path.read_text(encoding="utf-8"))["schema_version"], "0.5.0")
 
     def test_a_migrated_project_can_take_the_new_records(self):
         p = OracleProject.from_dict(old_file())
@@ -92,7 +92,7 @@ class MigrationTests(unittest.TestCase):
         snapshot = copy.deepcopy(old)
         result = migrate(old)
         self.assertEqual(old, snapshot)
-        self.assertEqual(result["schema_version"], "0.4.0")
+        self.assertEqual(result["schema_version"], "0.5.0")
         self.assertIsNot(result["decisions"], old["decisions"])
 
     def test_current_schema_needs_no_migration(self):
@@ -100,7 +100,7 @@ class MigrationTests(unittest.TestCase):
         self.assertEqual(migrate(data), data)
 
     def test_unknown_and_future_versions_are_refused(self):
-        for version in ("9.0.0", "0.5.0", "0.0.1", "0.1", None, 2, ""):
+        for version in ("9.0.0", "0.6.0", "0.0.1", "0.1", None, 2, ""):
             data = old_file()
             if version is None:
                 del data["schema_version"]
@@ -108,7 +108,7 @@ class MigrationTests(unittest.TestCase):
                 data["schema_version"] = version
             with self.assertRaises(SchemaVersionError, msg=repr(version)):
                 OracleProject.from_dict(data)
-        self.assertEqual(sorted(MIGRATIONS), ["0.1.0", "0.2.0", "0.3.0"])
+        self.assertEqual(sorted(MIGRATIONS), ["0.1.0", "0.2.0", "0.3.0", "0.4.0"])
 
     def test_non_objects_are_refused(self):
         for bad in ([], "0.1.0", None, 3):
@@ -241,7 +241,7 @@ class MigrationFrom020Tests(unittest.TestCase):
     def test_a_0_2_0_project_loads_with_nothing_lost_and_no_architecture_invented(self):
         old = self.data()
         p = OracleProject.from_dict(old)
-        self.assertEqual(p.schema_version, "0.4.0")
+        self.assertEqual(p.schema_version, "0.5.0")
         self.assertIsNone(p.architecture)
         self.assertEqual(p.building.to_dict(), old["building"])
         self.assertEqual([d.id for d in p.decisions], [d["id"] for d in old["decisions"]])
@@ -254,7 +254,7 @@ class MigrationFrom020Tests(unittest.TestCase):
         snapshot = copy.deepcopy(old)
         result = migrate(old)
         self.assertEqual(old, snapshot)
-        self.assertEqual(result["schema_version"], "0.4.0")
+        self.assertEqual(result["schema_version"], "0.5.0")
         self.assertEqual(result["architectures"], [])
         text = OracleProject.from_dict(old).to_json()
         self.assertEqual(OracleProject.from_json(text).to_json(), text)

@@ -35,7 +35,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Iterable, Mapping, Optional
 
-SCHEMA_VERSION = "0.4.0"
+SCHEMA_VERSION = "0.5.0"
 
 # Two points/nodes closer than this on the same level are treated as the same point.
 POSITION_TOL_MM = 1.0

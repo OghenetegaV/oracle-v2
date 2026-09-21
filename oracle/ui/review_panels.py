@@ -1,7 +1,8 @@
 """Oracle — Review Panels (interface)
 
 Purpose:
-    The tabs of the Architectural Interpretation Review screen: Summary (what Oracle read, and what stands between the project and readiness),
+    The tabs of the "Evidence & Details" window (the technical view behind the calm review screen; nothing here is needed to finish a review,
+    everything here is available to investigate one): Summary (what Oracle read, and what stands between the project and readiness),
     Views, Levels (detected, and engineer-established), Observations (grouped by the interpreter's own vocabulary), Questions (open
     interpretations with their alternatives, evidence and linked issues, where the engineer accepts or rejects a reading), Issues, the
     Approved architecture (built from project.approved_architecture(), separated from what is still proposed or unresolved) and the
@@ -93,6 +94,7 @@ class ReviewPanels(ttk.Notebook):
         self._build_questions()
         self._build_issues()
         self._build_approved()
+        self._build_input()
         self._build_decisions()
         self.bind("<<NotebookTabChanged>>", lambda e: self.ws.on_tab_changed(self.tab_name()))
 
@@ -117,6 +119,14 @@ class ReviewPanels(ttk.Notebook):
     @staticmethod
     def _selected(tree) -> list:
         return list(tree.selection())
+
+    def _first(self, tree) -> Optional[str]:
+        sel = self._selected(tree)
+        return sel[0] if sel else None
+
+    def _first_observation(self) -> Optional[str]:
+        ids = self.selected_observation_ids()
+        return ids[0] if ids else None
 
     def _buttons(self, parent, spec: list) -> tk.Frame:
         row = tk.Frame(parent, bg=theme.PANEL)
@@ -185,7 +195,8 @@ class ReviewPanels(ttk.Notebook):
                           ("Set level…", lambda: self.ws.act_view_level(self._selected(self.views_tree)), False),
                           ("Align…", lambda: self.ws.act_align(self._selected(self.views_tree)), False),
                           ("Merge…", lambda: self.ws.act_merge(self._selected(self.views_tree)), False),
-                          ("Split…", lambda: self.ws.act_split(self._selected(self.views_tree)), False)]).pack(fill="x", padx=8, pady=2)
+                          ("Split…", lambda: self.ws.act_split(self._selected(self.views_tree)), False),
+                          ("Ask Engineer…", lambda: self.ws.act_ask_engineer(self._first(self.views_tree)), False)]).pack(fill="x", padx=8, pady=2)
         self.view_detail = readonly_text(f, height=6, font=theme.SMALL)
         self.view_detail.pack(fill="x", padx=8, pady=(4, 8))
 
@@ -299,7 +310,8 @@ class ReviewPanels(ttk.Notebook):
         self.obs_tree.bind("<<TreeviewSelect>>", lambda e: self._on_obs_selected())
         self._buttons(f, [("Approve selected", lambda: self.ws.act_review_observations(self.selected_observation_ids(), True), True),
                           ("Reject selected", lambda: self.ws.act_review_observations(self.selected_observation_ids(), False), False),
-                          ("Approve proposed reading", lambda: self.ws.act_approve_hint(self.selected_observation_ids()), False)]).pack(fill="x", padx=8, pady=4)
+                          ("Approve proposed reading", lambda: self.ws.act_approve_hint(self.selected_observation_ids()), False),
+                          ("Ask Engineer…", lambda: self.ws.act_ask_engineer(self._first_observation()), False)]).pack(fill="x", padx=8, pady=4)
         self.obs_detail = readonly_text(f, height=4, font=theme.SMALL)
         self.obs_detail.pack(fill="x", padx=8, pady=(0, 8))
 
@@ -358,6 +370,7 @@ class ReviewPanels(ttk.Notebook):
         frame2.pack(fill="x", padx=8)
         self._buttons(f, [("Accept selected reading", lambda: self.ws.act_accept_alternative(self.current_question(), self.current_alternative()), True),
                           ("Reject selected reading", lambda: self.ws.act_reject_alternative(self.current_question(), self.current_alternative()), False),
+                          ("Ask Engineer…", lambda: self.ws.act_ask_engineer(None, self.current_question()), False),
                           ("Show on drawing", lambda: self.ws.select_question(self.current_question()), False)]).pack(fill="x", padx=8, pady=4)
         self.q_evidence = readonly_text(f, height=5, font=theme.SMALL)
         self.q_evidence.pack(fill="x", padx=8, pady=(0, 8))
@@ -503,6 +516,21 @@ class ReviewPanels(ttk.Notebook):
         parts.append(("\nNot yet available from the approved architecture\n", "h"))
         parts += [(f"  • {n}\n", "muted") for n in a.not_yet_available]
         fill_text(self.approved_text, parts)
+
+    # ---------------------------------------------------------------- engineer input
+
+    def _build_input(self):
+        f = self._add("input", "Engineer input")
+        tk.Label(f, text="What you have told Oracle in your own words. Each is kept exactly as written and flagged as guidance for the next stage.",
+                 font=theme.SMALL, bg=theme.PANEL, fg=theme.MUTED, anchor="w", justify="left", wraplength=760).pack(fill="x", padx=8, pady=(8, 0))
+        cols = [("id", "Ref", 64), ("when", "When", 130), ("who", "Engineer", 90), ("about", "About", 150), ("what", "What you said", 330), ("fate", "Status", 200)]
+        frame, self.input_tree = make_tree(f, cols, height=14, selectmode="browse")
+        frame.pack(fill="both", expand=True, padx=8, pady=8)
+
+    def fill_input(self, rows: list) -> None:
+        self.input_tree.delete(*self.input_tree.get_children())
+        for cid, when, who, about, statement, fate in rows:
+            self.input_tree.insert("", "end", iid=cid, values=(cid, when, who, about, " ".join(statement.split()), fate))
 
     # ---------------------------------------------------------------- decisions
 

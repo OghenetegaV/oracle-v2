@@ -35,6 +35,23 @@ from typing import Iterable, Optional
 from oracle.ingestion import DrawingDocument
 
 
+# What the STRUCTURAL REVIEW rendering leaves out. It is only a rendering choice: nothing is removed from the drawing, the project or the
+# provenance, and the ORIGINAL DRAWING view shows every entity. A layer (or block) is hidden when Oracle's own classification says it is
+# furnishing, fittings, ceilings, finishes or presentation: what helps the architect present the building, not the engineer understand it.
+HIDDEN_IN_STRUCTURAL = frozenset({
+    "furniture", "casework", "sanitary", "sanitary_fixtures", "equipment", "services", "ceiling", "area", "generic_model", "title_block",
+    "non_plotting", "landscape", "symbol",
+})
+_HIDDEN_SUFFIXES = ("_finish", "_pattern", "_hidden")
+BLOCK_FURNISHING = frozenset({"furniture", "casework", "sanitary", "equipment"})
+# text that stays in the structural view: grid names, level names and elevations, dimensions, section/elevation markers, notes on structure
+KEPT_TEXT_CLASSES = frozenset({"grid", "grid_label", "level_marker", "dimension", "column", "beam", "slab", "foundation"})
+
+
+def hidden_in_structural(semantic_class: str) -> bool:
+    return semantic_class in HIDDEN_IN_STRUCTURAL or semantic_class.endswith(_HIDDEN_SUFFIXES)
+
+
 @dataclass(frozen=True)
 class DrawnPath:
     entity_id: str
@@ -42,6 +59,7 @@ class DrawnPath:
     points: tuple
     closed: bool
     box: tuple
+    block: Optional[str] = None
 
 
 @dataclass
@@ -87,7 +105,10 @@ class DrawingPreview:
         self.source_file = document.source_file
         self.sha256 = document.sha256
         self.paths: list = []
-        self.texts: list = []                      # (x, y, text, height) for labels at high zoom
+        self.texts: list = []                      # (x, y, text, height, layer) for labels at high zoom
+        self._hidden_path: set = set()             # indices of paths the structural review leaves out
+        self._hidden_layers: set = set()
+        self._structural_ready = False
         self._index: dict = {}
         self._by_entity: dict = {}
         self.entity_boxes: dict = {e.id: e.box for e in document.entities if e.space == "model"}
@@ -96,10 +117,11 @@ class DrawingPreview:
                 continue
             pts = self._points_of(e)
             if e.kind == "TEXT" and e.text and e.points:
-                self.texts.append((e.points[0][0], e.points[0][1], e.text, e.height or 0.0))
+                self.texts.append((e.points[0][0], e.points[0][1], e.text, e.height or 0.0, e.layer))
             if pts is None or len(pts) < 2:
                 continue
-            path = DrawnPath(e.id, e.layer, tuple(pts), bool(e.closed or e.kind in ("CIRCLE", "INSERT")), _box(pts))
+            path = DrawnPath(e.id, e.layer, tuple(pts), bool(e.closed or e.kind in ("CIRCLE", "INSERT")), _box(pts),
+                             e.block if e.kind == "INSERT" else None)
             self._by_entity.setdefault(e.id, []).append(len(self.paths))
             self.paths.append(path)
         boxes = [p.box for p in self.paths]
@@ -132,14 +154,49 @@ class DrawingPreview:
                 for cy in range(int((p.box[1] - y0) / self._cell), int((p.box[3] - y0) / self._cell) + 1):
                     self._index.setdefault((cx, cy), []).append(i)
 
+    def set_structural_filter(self, layer_classes: dict, block_class=None) -> None:
+        """Decide, once, what the structural review hides: `layer_classes` maps a layer name to Oracle's semantic class for it (the project's own
+        layer classification); `block_class(block_name)` optionally names a block's meaning (a bed on a generic layer). Rendering only."""
+        self._hidden_layers = {name for name, cls in layer_classes.items() if hidden_in_structural(cls)}
+        self._kept_text_layers = {name for name, cls in layer_classes.items() if cls in KEPT_TEXT_CLASSES}
+        self._hidden_path = set()
+        for i, p in enumerate(self.paths):
+            if p.layer in self._hidden_layers or (p.block and block_class and block_class(p.block) in BLOCK_FURNISHING):
+                self._hidden_path.add(i)
+        self._structural_ready = True
+
+    @property
+    def hidden_count(self) -> int:
+        return len(self._hidden_path)
+
+    def shows_text(self, layer: str, structural: bool) -> bool:
+        return not structural or not self._structural_ready or layer in self._kept_text_layers
+
+    def is_hidden(self, index: int, structural: bool) -> bool:
+        return structural and index in self._hidden_path
+
+    def nearest_vertex(self, point: tuple, radius: float, structural: bool = True) -> Optional[tuple]:
+        """The drawn vertex nearest `point` within `radius` (drawing units), so a click can snap to a corner or a grid crossing."""
+        best = None
+        for i in self.visible((point[0] - radius, point[1] - radius, point[0] + radius, point[1] + radius)):
+            if self.is_hidden(i, structural):
+                continue
+            for x, y in self.paths[i].points:
+                d = math.hypot(x - point[0], y - point[1])
+                if d <= radius and (best is None or d < best[0]):
+                    best = (d, (x, y))
+        return best[1] if best else None
+
     def visible(self, box: tuple) -> list:
         """Indices of paths whose box touches `box`."""
         if not self.paths:
             return []
         x0, y0 = self._origin
         seen, out = set(), []
-        for cx in range(max(0, int((box[0] - x0) / self._cell)), int((box[2] - x0) / self._cell) + 1):
-            for cy in range(max(0, int((box[1] - y0) / self._cell)), int((box[3] - y0) / self._cell) + 1):
+        cx_hi = int((self.bounds[2] - x0) / self._cell)           # the grid only spans the drawing: a huge query box (a zoomed-out or not yet
+        cy_hi = int((self.bounds[3] - y0) / self._cell)           # sized canvas) must not walk millions of empty cells
+        for cx in range(max(0, int((box[0] - x0) / self._cell)), min(cx_hi, int((box[2] - x0) / self._cell)) + 1):
+            for cy in range(max(0, int((box[1] - y0) / self._cell)), min(cy_hi, int((box[3] - y0) / self._cell)) + 1):
                 for i in self._index.get((cx, cy), ()):
                     if i not in seen:
                         seen.add(i)

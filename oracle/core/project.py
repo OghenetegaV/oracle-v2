@@ -55,6 +55,7 @@ from .. import __version__ as ORACLE_VERSION
 from dataclasses import replace as dataclass_replace
 
 from . import approved as _approved
+from . import clarifications as _clarifications
 from . import resolution as _resolution
 from . import trace as _trace
 from .architecture import (
@@ -62,6 +63,7 @@ from .architecture import (
     ViewType,
 )
 from .building import BuildingModel, Level
+from .clarifications import EngineerClarification
 from .evidence import EvidenceLink, EvidenceRelation
 from .level_changes import plan_level_change
 from .common import (
@@ -104,6 +106,7 @@ class OracleProject:
         self._interpretations: dict = {}
         self._architectures: dict = {}          # source id -> ArchitecturalInterpretation
         self._evidence_links: dict = {}
+        self._clarifications: dict = {}
         self._provenance_seq = 0
 
     @classmethod
@@ -204,6 +207,47 @@ class OracleProject:
             self._review_status(Target.architectural(o.id), decision.id, status.value)
         self.touch()
 
+    def reconsider_views(self, view_ids, decision: EngineeringDecision) -> None:
+        """The engineer takes an earlier decision about views back to "needs review" (an accepted or a rejected view). It is a new
+        engineer decision: the earlier one stays on record, and nothing is deleted or resurrected without a decision."""
+        self._engineer_review_decision(decision)
+        found = []
+        for vid in view_ids:
+            arch, v = self._arch_object(vid)
+            if not isinstance(v, DrawingView) or v.review not in (ReviewStatus.ACCEPTED, ReviewStatus.REJECTED):
+                raise ValidationError(f"{vid} is not an accepted or rejected view; there is nothing to reconsider.")
+            found.append((arch, v))
+        self._store_decision(decision)
+        for arch, v in found:
+            arch.replace(dataclass_replace(v, review=ReviewStatus.PROPOSED))
+            self._review_status(Target.architectural(v.id), decision.id, "reconsidered")
+        self.touch()
+
+    def change_view_type(self, view_id: str, new_type, decision: EngineeringDecision) -> ValueStatusRecord:
+        """The engineer corrects what kind of view this is (plan, section, elevation, detail ...) WITHOUT rejecting it: the view stays, keeps its
+        evidence, and its type changes through the ordinary value mechanism, so Oracle's original type stays in `decision.previous_value` and in the
+        history. Only a floor plan carries a level key, so leaving the plan type drops the level Oracle had read for it (the caller says so in the
+        decision's instruction); nothing is changed if the correction is refused."""
+        arch, view = self._arch_object(view_id)
+        if not isinstance(view, DrawingView) or view.review == ReviewStatus.SUPERSEDED:
+            raise ValidationError(f"{view_id} is not a view whose type can be corrected.")
+        new = parse_enum(ViewType, new_type, "view type")
+        if new == view.view_type:
+            raise ValidationError(f"{view_id} is already a {new.value}.")
+        if new != ViewType.FLOOR_PLAN and view.level_key is not None:
+            arch.replace(dataclass_replace(view, level_key=None))
+        try:
+            record = self.set_value(Target.architectural(view_id), "view_type", new.value, decision)
+        except ValidationError:
+            arch.replace(view)
+            raise
+        if view.level_key is not None and new != ViewType.FLOOR_PLAN:      # an engineer's earlier ruling on the dropped level is history now
+            for earlier in self.decision_history(Target.architectural(view_id), "level_key"):
+                if earlier.status == DecisionStatus.ACCEPTED:
+                    earlier.supersede(decision.id)
+            self._value_status.pop(("architectural", view_id, "level_key"), None)
+        return record
+
     def merge_views(self, view_ids, new_id: str, decision: EngineeringDecision) -> DrawingView:
         """The engineer says several views are one. The originals are kept, marked superseded; the new view
         takes over their observations. Its frames are cleared: the interpreter must derive them again."""
@@ -285,16 +329,17 @@ class OracleProject:
         highest = max((int(f.id[4:]) for a in self._architectures.values() for f in a.frames), default=0)
         return f"FRM-{highest + 1:02d}"
 
-    def align_view(self, view_id: str, translation, decision: EngineeringDecision) -> CoordinateFrame:
+    def align_view(self, view_id: str, translation, decision: EngineeringDecision, *, rotation_deg: float = 0.0) -> CoordinateFrame:
         """The engineer says how a plan lines up with the building: building = view-local + translation (in the source
-        drawing's units). The alignment frame is created and the view's alignment_frame_id is set THROUGH set_value,
+        drawing's units). With a `rotation_deg` (a two-point alignment) the plan is also turned: view-local = R(rotation) * building -
+        translation; scale is never changed (the frame keeps scale 1). The alignment frame is created and the view's alignment_frame_id is set THROUGH set_value,
         so the change has the ordinary history. `decision` must be an accepted ENGINEER decision on the view's
         alignment_frame_id whose value is the new frame's id (see next_frame_id())."""
         arch, view = self._arch_object(view_id)
         if not isinstance(view, DrawingView) or view.view_type != ViewType.FLOOR_PLAN or view.frame_id is None:
             raise ValidationError(f"{view_id} is not a floor plan with a coordinate frame.")
         frame = CoordinateFrame(decision.value, f"{view_id} to building (engineer)", view.frame_id,
-                                (-float(translation[0]), -float(translation[1])))
+                                (-float(translation[0]), -float(translation[1])), float(rotation_deg))
         if decision.field != "alignment_frame_id" or decision.target != Target.architectural(view_id):
             raise ValidationError("An alignment decision must be about the view's alignment_frame_id.")
         arch.add(frame)
@@ -741,6 +786,33 @@ class OracleProject:
         structural side to consume. See oracle.core.approved."""
         return _approved.approved_architecture(self, source_id)
 
+    # ---- engineer clarifications (free-form engineer input) ----
+
+    @property
+    def clarifications(self) -> list:
+        return list(self._clarifications.values())
+
+    def get_clarification(self, clarification_id: str) -> EngineerClarification:
+        try:
+            return self._clarifications[clarification_id]
+        except KeyError:
+            raise ValidationError(f"Unknown clarification {clarification_id!r}.") from None
+
+    def clarifications_for(self, target: Target) -> list:
+        return [c for c in self._clarifications.values() if c.target == target]
+
+    def record_clarification(self, decision: EngineeringDecision, target: Target, statement: str,
+                             notes: Optional[str] = None) -> EngineerClarification:
+        """Keep the engineer's own words about a target, verbatim, under an accepted engineer decision. Nothing in the model
+        changes: the statement is guidance, flagged for the stage that can act on it. See oracle.core.clarifications."""
+        return _clarifications.record(self, decision, target, statement, notes)
+
+    def answer_with_engineer_input(self, set_id: str, decision: EngineeringDecision, statement: str, notes: Optional[str] = None,
+                                   *, target: Optional[Target] = None, effects: tuple = ()) -> EngineerClarification:
+        """The engineer answers an open interpretation set in their own words instead of choosing one of Oracle's readings. `effects`
+        (oracle.core.effects) are only for a value the engineer supplied; prose alone never changes the model."""
+        return _clarifications.answer_question(self, set_id, decision, statement, notes, target=target, effects=effects)
+
     # ---- alternative interpretations ----
 
     @property
@@ -916,6 +988,7 @@ class OracleProject:
                     raise ValidationError(f"Duplicate interpretation id {a.id!r}.")
                 seen_alternatives.add(a.id)
         _resolution.check_resolutions(self)
+        _clarifications.check_clarifications(self)
 
     def _check_decision(self, d: EngineeringDecision) -> None:
         if d.superseded_by is not None and d.superseded_by not in self._decisions:
@@ -998,6 +1071,7 @@ class OracleProject:
             "interpretations": [s.to_dict() for s in self._interpretations.values()],
             "architectures": [a.to_dict() for a in self._architectures.values()],
             "evidence_links": [l.to_dict() for l in self._evidence_links.values()],
+            "clarifications": [c.to_dict() for c in self._clarifications.values()],
         }
 
     @classmethod
@@ -1005,7 +1079,7 @@ class OracleProject:
         data = migrate(data)  # refuses unknown versions; upgrades older ones without inventing content
         check_keys(data, required={"schema_version", "project_id", "name", "engineer", "created_at", "modified_at",
                                    "decisions", "issues", "provenance", "value_status", "interpretations",
-                                   "architectures", "evidence_links"},
+                                   "architectures", "evidence_links", "clarifications"},
                    optional={"oracle_version", "description", "client", "location", "design_basis", "building"},
                    where="project")
         project = cls(data["project_id"], data["name"], data["engineer"], description=data.get("description"),
@@ -1023,6 +1097,9 @@ class OracleProject:
             if arch.drawing.id in project._architectures:
                 raise ValidationError(f"Duplicate drawing source {arch.drawing.id!r}.")
             project._architectures[arch.drawing.id] = arch
+        clarifications = [EngineerClarification.from_dict(c) for c in data["clarifications"]]
+        check_unique_ids((c.id for c in clarifications), "clarification id")
+        project._clarifications = {c.id: c for c in clarifications}
         links = [EvidenceLink.from_dict(l) for l in data["evidence_links"]]
         check_unique_ids((l.id for l in links), "evidence link id")
         project._evidence_links = {l.id: l for l in links}

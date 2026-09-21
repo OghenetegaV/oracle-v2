@@ -1,0 +1,6185 @@
+{
+  "schema_version": "0.4.0",
+  "oracle_version": "2.0.0.dev0",
+  "project_id": "2fe039c248444187b13761bfa39fc0f8",
+  "name": "plan",
+  "description": "Architectural interpretation of plan.dxf",
+  "client": null,
+  "location": null,
+  "engineer": "Fixture Engineer",
+  "created_at": "2026-09-20T13:22:59Z",
+  "modified_at": "2026-09-20T13:22:59Z",
+  "design_basis": null,
+  "building": null,
+  "decisions": [
+    {
+      "id": "ENG-0001",
+      "created_at": "2026-09-20T13:22:59Z",
+      "author": "Fixture Engineer",
+      "source": "engineer",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-01"
+      },
+      "category": "architectural_coordination",
+      "instruction": "Approved 1 view(s): VIEW-01",
+      "reason": "checked",
+      "status": "accepted",
+      "overrides_recommendation": false,
+      "oracle_recommendation": null,
+      "superseded_by": null,
+      "responds_to": null,
+      "field": null,
+      "value": null,
+      "previous_value": null
+    },
+    {
+      "id": "ENG-0002",
+      "created_at": "2026-09-20T13:22:59Z",
+      "author": "Fixture Engineer",
+      "source": "engineer",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-03"
+      },
+      "category": "architectural_coordination",
+      "instruction": "Rejected 1 view(s): VIEW-03",
+      "reason": "duplicate sheet",
+      "status": "accepted",
+      "overrides_recommendation": false,
+      "oracle_recommendation": null,
+      "superseded_by": null,
+      "responds_to": null,
+      "field": null,
+      "value": null,
+      "previous_value": null
+    }
+  ],
+  "issues": [
+    {
+      "id": "ARC-0001",
+      "severity": "warning",
+      "category": "incomplete_information",
+      "message": "Storey height for Ground Floor → First Floor could not be reliably established from the available architectural drawing. It is not assumed; the engineer must supply it.",
+      "target": {
+        "scope": "project",
+        "id": null
+      },
+      "source": "oracle.interpretation",
+      "status": "open",
+      "resolution": null,
+      "decision_id": null,
+      "evidence": [],
+      "interpretation_id": null,
+      "related": []
+    },
+    {
+      "id": "ARC-0002",
+      "severity": "warning",
+      "category": "incomplete_information",
+      "message": "Storey height for First Floor → Second Floor could not be reliably established from the available architectural drawing. It is not assumed; the engineer must supply it.",
+      "target": {
+        "scope": "project",
+        "id": null
+      },
+      "source": "oracle.interpretation",
+      "status": "open",
+      "resolution": null,
+      "decision_id": null,
+      "evidence": [],
+      "interpretation_id": null,
+      "related": []
+    }
+  ],
+  "provenance": [
+    {
+      "id": "PV-00001",
+      "target": {
+        "scope": "architectural",
+        "id": "SRC-1"
+      },
+      "field": null,
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": null,
+        "entity_type": "file",
+        "source_id": "SRC-1",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "file_read",
+      "producer": "oracle.interpretation",
+      "confidence": null,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "Read 96 entities from plan.dxf."
+    },
+    {
+      "id": "PV-00002",
+      "target": {
+        "scope": "architectural",
+        "id": "SRC-1"
+      },
+      "field": "units",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": null,
+        "entity_type": "file",
+        "source_id": "SRC-1",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "unit_detection",
+      "producer": "oracle.interpretation",
+      "confidence": 0.99,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "median drawn line is 9800 drawing units; the file's unit metadata says mm (the source declares it)"
+    },
+    {
+      "id": "PV-00003",
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-001"
+      },
+      "field": "semantic_class",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": "0",
+        "entity_type": "layer",
+        "source_id": "LAY-001",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "none",
+      "producer": "oracle.interpretation",
+      "confidence": 0.0,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "no recognisable name"
+    },
+    {
+      "id": "PV-00004",
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-002"
+      },
+      "field": "semantic_class",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": "A-ANNO-DIMS",
+        "entity_type": "layer",
+        "source_id": "LAY-002",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "token_match",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "Layer 'A-ANNO-DIMS' classified as dimension by token_match."
+    },
+    {
+      "id": "PV-00005",
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-003"
+      },
+      "field": "semantic_class",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": "A-ANNO-TEXT",
+        "entity_type": "layer",
+        "source_id": "LAY-003",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "token_match",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "Layer 'A-ANNO-TEXT' classified as text_annotation by token_match."
+    },
+    {
+      "id": "PV-00006",
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-004"
+      },
+      "field": "semantic_class",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": "A-COLS",
+        "entity_type": "layer",
+        "source_id": "LAY-004",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "token_match",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "Layer 'A-COLS' classified as column by token_match."
+    },
+    {
+      "id": "PV-00007",
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-005"
+      },
+      "field": "semantic_class",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": "A-DOOR",
+        "entity_type": "layer",
+        "source_id": "LAY-005",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "token_match",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "Layer 'A-DOOR' classified as door by token_match."
+    },
+    {
+      "id": "PV-00008",
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-006"
+      },
+      "field": "semantic_class",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": "A-ELEV-OTLN",
+        "entity_type": "layer",
+        "source_id": "LAY-006",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "none",
+      "producer": "oracle.interpretation",
+      "confidence": 0.0,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "no recognised word in ['ELEV', 'OTLN']"
+    },
+    {
+      "id": "PV-00009",
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-007"
+      },
+      "field": "semantic_class",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": "A-FLOR-LEVL",
+        "entity_type": "layer",
+        "source_id": "LAY-007",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "token_match",
+      "producer": "oracle.interpretation",
+      "confidence": 0.9,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "Layer 'A-FLOR-LEVL' classified as level_marker by token_match."
+    },
+    {
+      "id": "PV-00010",
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-008"
+      },
+      "field": "semantic_class",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": "A-FLOR-OVHD",
+        "entity_type": "layer",
+        "source_id": "LAY-008",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "token_match",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "Layer 'A-FLOR-OVHD' classified as floor by token_match."
+    },
+    {
+      "id": "PV-00011",
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-009"
+      },
+      "field": "semantic_class",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": "A-FURN",
+        "entity_type": "layer",
+        "source_id": "LAY-009",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "token_match",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "Layer 'A-FURN' classified as furniture by token_match."
+    },
+    {
+      "id": "PV-00012",
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-010"
+      },
+      "field": "semantic_class",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": "A-GLAZ",
+        "entity_type": "layer",
+        "source_id": "LAY-010",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "token_match",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "Layer 'A-GLAZ' classified as window by token_match."
+    },
+    {
+      "id": "PV-00013",
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-011"
+      },
+      "field": "semantic_class",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": "A-GRID",
+        "entity_type": "layer",
+        "source_id": "LAY-011",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "token_match",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "Layer 'A-GRID' classified as grid by token_match."
+    },
+    {
+      "id": "PV-00014",
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-012"
+      },
+      "field": "semantic_class",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": "A-GRID-IDEN",
+        "entity_type": "layer",
+        "source_id": "LAY-012",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "token_match",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "Layer 'A-GRID-IDEN' classified as grid_label by token_match."
+    },
+    {
+      "id": "PV-00015",
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-013"
+      },
+      "field": "semantic_class",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": "A-SECT-CUT",
+        "entity_type": "layer",
+        "source_id": "LAY-013",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "none",
+      "producer": "oracle.interpretation",
+      "confidence": 0.0,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "no recognised word in ['SECT', 'CUT']"
+    },
+    {
+      "id": "PV-00016",
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-014"
+      },
+      "field": "semantic_class",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": "A-WALL-EXT",
+        "entity_type": "layer",
+        "source_id": "LAY-014",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "token_match",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "Layer 'A-WALL-EXT' classified as wall_external by token_match."
+    },
+    {
+      "id": "PV-00017",
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-015"
+      },
+      "field": "semantic_class",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": "A-WALL-INT",
+        "entity_type": "layer",
+        "source_id": "LAY-015",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "token_match",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "Layer 'A-WALL-INT' classified as wall_internal by token_match."
+    },
+    {
+      "id": "PV-00018",
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-016"
+      },
+      "field": "semantic_class",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": "Defpoints",
+        "entity_type": "layer",
+        "source_id": "LAY-016",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "source_flag",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "the source marks this layer as not plotting"
+    },
+    {
+      "id": "PV-00019",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-01"
+      },
+      "field": "view_type",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "78",
+        "layer": null,
+        "entity_type": "TEXT",
+        "source_id": "VIEW-01",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": "region of 24 entities"
+      },
+      "method": "title_text",
+      "producer": "oracle.interpretation",
+      "confidence": 0.69,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "Text 'GROUND FLOOR PLAN' announces a floor_plan"
+    },
+    {
+      "id": "PV-00020",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-01"
+      },
+      "field": "view_type",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": null,
+        "entity_type": "region",
+        "source_id": "VIEW-01",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": "region of 24 entities"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.25,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "6 entities lie on wall-class layers"
+    },
+    {
+      "id": "PV-00021",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-01"
+      },
+      "field": "view_type",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": null,
+        "entity_type": "region",
+        "source_id": "VIEW-01",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": "region of 24 entities"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.05,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "7 door/window entities"
+    },
+    {
+      "id": "PV-00022",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-01"
+      },
+      "field": "bbox",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": null,
+        "entity_type": "region",
+        "source_id": "VIEW-01",
+        "coordinates": [
+          [
+            -600.0,
+            -600.0
+          ],
+          [
+            13300.0,
+            9200.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": null
+      },
+      "method": "spatial_cluster",
+      "producer": "oracle.interpretation",
+      "confidence": null,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "24 geometry entities connected within a small tolerance; 7 texts and 0 dimensions inside."
+    },
+    {
+      "id": "PV-00023",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-01"
+      },
+      "field": "level_key",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "78",
+        "layer": null,
+        "entity_type": "TEXT",
+        "source_id": "VIEW-01",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "level_name",
+      "producer": "oracle.interpretation",
+      "confidence": 0.92,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "The title 'GROUND FLOOR PLAN' names level GROUND (keyword)."
+    },
+    {
+      "id": "PV-00024",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-01"
+      },
+      "field": "frame_id",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": null,
+        "entity_type": "region",
+        "source_id": "VIEW-01",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "dominant_direction",
+      "producer": "oracle.interpretation",
+      "confidence": 1.0,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "Dominant line direction 0.0 degrees (100% of line length)."
+    },
+    {
+      "id": "PV-00025",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00001"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "60",
+        "layer": "A-COLS",
+        "entity_type": "column_symbol",
+        "source_id": "OBS-00001",
+        "coordinates": [
+          [
+            -150.0,
+            -150.0
+          ],
+          [
+            150.0,
+            -150.0
+          ],
+          [
+            150.0,
+            150.0
+          ],
+          [
+            -150.0,
+            150.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-01"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a insert on a column-class layer"
+    },
+    {
+      "id": "PV-00026",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00002"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "62",
+        "layer": "A-COLS",
+        "entity_type": "column_symbol",
+        "source_id": "OBS-00002",
+        "coordinates": [
+          [
+            -150.0,
+            7850.0
+          ],
+          [
+            150.0,
+            7850.0
+          ],
+          [
+            150.0,
+            8150.0
+          ],
+          [
+            -150.0,
+            8150.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-01"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a insert on a column-class layer"
+    },
+    {
+      "id": "PV-00027",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00003"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "64",
+        "layer": "A-COLS",
+        "entity_type": "column_symbol",
+        "source_id": "OBS-00003",
+        "coordinates": [
+          [
+            5850.0,
+            -150.0
+          ],
+          [
+            6150.0,
+            -150.0
+          ],
+          [
+            6150.0,
+            150.0
+          ],
+          [
+            5850.0,
+            150.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-01"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a insert on a column-class layer"
+    },
+    {
+      "id": "PV-00028",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00004"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "66",
+        "layer": "A-COLS",
+        "entity_type": "column_symbol",
+        "source_id": "OBS-00004",
+        "coordinates": [
+          [
+            5850.0,
+            7850.0
+          ],
+          [
+            6150.0,
+            7850.0
+          ],
+          [
+            6150.0,
+            8150.0
+          ],
+          [
+            5850.0,
+            8150.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-01"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a insert on a column-class layer"
+    },
+    {
+      "id": "PV-00029",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00005"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "68",
+        "layer": "A-COLS",
+        "entity_type": "column_symbol",
+        "source_id": "OBS-00005",
+        "coordinates": [
+          [
+            11850.0,
+            -150.0
+          ],
+          [
+            12150.0,
+            -150.0
+          ],
+          [
+            12150.0,
+            150.0
+          ],
+          [
+            11850.0,
+            150.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-01"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a insert on a column-class layer"
+    },
+    {
+      "id": "PV-00030",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00006"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "6A",
+        "layer": "A-COLS",
+        "entity_type": "column_symbol",
+        "source_id": "OBS-00006",
+        "coordinates": [
+          [
+            11850.0,
+            7850.0
+          ],
+          [
+            12150.0,
+            7850.0
+          ],
+          [
+            12150.0,
+            8150.0
+          ],
+          [
+            11850.0,
+            8150.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-01"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a insert on a column-class layer"
+    },
+    {
+      "id": "PV-00031",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00007"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "4D",
+        "layer": "A-DOOR",
+        "entity_type": "door",
+        "source_id": "OBS-00007",
+        "coordinates": [
+          [
+            3000.0,
+            0.0
+          ],
+          [
+            3900.0,
+            0.0
+          ],
+          [
+            3900.0,
+            900.0
+          ],
+          [
+            3000.0,
+            900.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-01"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a block (DOOR-900) on a door layer"
+    },
+    {
+      "id": "PV-00032",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00008"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "4F",
+        "layer": "A-DOOR",
+        "entity_type": "door",
+        "source_id": "OBS-00008",
+        "coordinates": [
+          [
+            5550.0,
+            4000.0
+          ],
+          [
+            6450.0,
+            4000.0
+          ],
+          [
+            6450.0,
+            4900.0
+          ],
+          [
+            5550.0,
+            4900.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-01"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a block (DOOR-900) on a door layer"
+    },
+    {
+      "id": "PV-00033",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00009"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "51",
+        "layer": "A-DOOR",
+        "entity_type": "door",
+        "source_id": "OBS-00009",
+        "coordinates": [
+          [
+            9000.0,
+            4000.0
+          ],
+          [
+            9900.0,
+            4000.0
+          ],
+          [
+            9900.0,
+            4900.0
+          ],
+          [
+            9000.0,
+            4900.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-01"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a block (DOOR-900) on a door layer"
+    },
+    {
+      "id": "PV-00034",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00010"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "53",
+        "layer": "A-GLAZ",
+        "entity_type": "window",
+        "source_id": "OBS-00010",
+        "coordinates": [
+          [
+            2000.0,
+            7800.0
+          ],
+          [
+            3500.0,
+            7800.0
+          ],
+          [
+            3500.0,
+            8000.0
+          ],
+          [
+            2000.0,
+            8000.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-01"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a block (WINDOW-1500) on a window layer"
+    },
+    {
+      "id": "PV-00035",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00011"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "55",
+        "layer": "A-GLAZ",
+        "entity_type": "window",
+        "source_id": "OBS-00011",
+        "coordinates": [
+          [
+            6000.0,
+            7800.0
+          ],
+          [
+            7500.0,
+            7800.0
+          ],
+          [
+            7500.0,
+            8000.0
+          ],
+          [
+            6000.0,
+            8000.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-01"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a block (WINDOW-1500) on a window layer"
+    },
+    {
+      "id": "PV-00036",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00012"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "57",
+        "layer": "A-GLAZ",
+        "entity_type": "window",
+        "source_id": "OBS-00012",
+        "coordinates": [
+          [
+            10000.0,
+            7800.0
+          ],
+          [
+            11500.0,
+            7800.0
+          ],
+          [
+            11500.0,
+            8000.0
+          ],
+          [
+            10000.0,
+            8000.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-01"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a block (WINDOW-1500) on a window layer"
+    },
+    {
+      "id": "PV-00037",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00013"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "59",
+        "layer": "A-GLAZ",
+        "entity_type": "window",
+        "source_id": "OBS-00013",
+        "coordinates": [
+          [
+            11800.0,
+            4000.0
+          ],
+          [
+            13300.0,
+            4000.0
+          ],
+          [
+            13300.0,
+            4200.0
+          ],
+          [
+            11800.0,
+            4200.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-01"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a block (WINDOW-1500) on a window layer"
+    },
+    {
+      "id": "PV-00038",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00014"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "6C",
+        "layer": "A-GRID",
+        "entity_type": "grid_lines",
+        "source_id": "OBS-00014",
+        "coordinates": [
+          [
+            -600.0,
+            -600.0
+          ],
+          [
+            12600.0,
+            -600.0
+          ],
+          [
+            12600.0,
+            9200.0
+          ],
+          [
+            -600.0,
+            9200.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-01"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "5 entities on layer A-GRID"
+    },
+    {
+      "id": "PV-00039",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00015"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "3D",
+        "layer": "A-WALL-EXT",
+        "entity_type": "wall_external",
+        "source_id": "OBS-00015",
+        "coordinates": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            12000.0,
+            0.0
+          ],
+          [
+            12000.0,
+            8000.0
+          ],
+          [
+            0.0,
+            8000.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-01"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "2 entities on layer A-WALL-EXT"
+    },
+    {
+      "id": "PV-00040",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00016"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "3F",
+        "layer": "A-WALL-INT",
+        "entity_type": "wall_internal",
+        "source_id": "OBS-00016",
+        "coordinates": [
+          [
+            5900.0,
+            200.0
+          ],
+          [
+            11800.0,
+            200.0
+          ],
+          [
+            11800.0,
+            7800.0
+          ],
+          [
+            5900.0,
+            7800.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-01"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "4 entities on layer A-WALL-INT"
+    },
+    {
+      "id": "PV-00041",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-02"
+      },
+      "field": "view_type",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "A5",
+        "layer": null,
+        "entity_type": "TEXT",
+        "source_id": "VIEW-02",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": "region of 24 entities"
+      },
+      "method": "title_text",
+      "producer": "oracle.interpretation",
+      "confidence": 0.69,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "Text 'FIRST FLOOR PLAN' announces a floor_plan"
+    },
+    {
+      "id": "PV-00042",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-02"
+      },
+      "field": "view_type",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": null,
+        "entity_type": "region",
+        "source_id": "VIEW-02",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": "region of 24 entities"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.25,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "6 entities lie on wall-class layers"
+    },
+    {
+      "id": "PV-00043",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-02"
+      },
+      "field": "view_type",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": null,
+        "entity_type": "region",
+        "source_id": "VIEW-02",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": "region of 24 entities"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.05,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "7 door/window entities"
+    },
+    {
+      "id": "PV-00044",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-02"
+      },
+      "field": "bbox",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": null,
+        "entity_type": "region",
+        "source_id": "VIEW-02",
+        "coordinates": [
+          [
+            19400.0,
+            -600.0
+          ],
+          [
+            33300.0,
+            9200.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": null
+      },
+      "method": "spatial_cluster",
+      "producer": "oracle.interpretation",
+      "confidence": null,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "24 geometry entities connected within a small tolerance; 7 texts and 0 dimensions inside."
+    },
+    {
+      "id": "PV-00045",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-02"
+      },
+      "field": "level_key",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "A5",
+        "layer": null,
+        "entity_type": "TEXT",
+        "source_id": "VIEW-02",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "level_name",
+      "producer": "oracle.interpretation",
+      "confidence": 0.92,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "The title 'FIRST FLOOR PLAN' names level FLOOR:1 (ordinal)."
+    },
+    {
+      "id": "PV-00046",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-02"
+      },
+      "field": "frame_id",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": null,
+        "entity_type": "region",
+        "source_id": "VIEW-02",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "dominant_direction",
+      "producer": "oracle.interpretation",
+      "confidence": 1.0,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "Dominant line direction 0.0 degrees (100% of line length)."
+    },
+    {
+      "id": "PV-00047",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00017"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "8D",
+        "layer": "A-COLS",
+        "entity_type": "column_symbol",
+        "source_id": "OBS-00017",
+        "coordinates": [
+          [
+            19850.0,
+            -150.0
+          ],
+          [
+            20150.0,
+            -150.0
+          ],
+          [
+            20150.0,
+            150.0
+          ],
+          [
+            19850.0,
+            150.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-02"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a insert on a column-class layer"
+    },
+    {
+      "id": "PV-00048",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00018"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "8F",
+        "layer": "A-COLS",
+        "entity_type": "column_symbol",
+        "source_id": "OBS-00018",
+        "coordinates": [
+          [
+            19850.0,
+            7850.0
+          ],
+          [
+            20150.0,
+            7850.0
+          ],
+          [
+            20150.0,
+            8150.0
+          ],
+          [
+            19850.0,
+            8150.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-02"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a insert on a column-class layer"
+    },
+    {
+      "id": "PV-00049",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00019"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "91",
+        "layer": "A-COLS",
+        "entity_type": "column_symbol",
+        "source_id": "OBS-00019",
+        "coordinates": [
+          [
+            25850.0,
+            -150.0
+          ],
+          [
+            26150.0,
+            -150.0
+          ],
+          [
+            26150.0,
+            150.0
+          ],
+          [
+            25850.0,
+            150.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-02"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a insert on a column-class layer"
+    },
+    {
+      "id": "PV-00050",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00020"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "93",
+        "layer": "A-COLS",
+        "entity_type": "column_symbol",
+        "source_id": "OBS-00020",
+        "coordinates": [
+          [
+            25850.0,
+            7850.0
+          ],
+          [
+            26150.0,
+            7850.0
+          ],
+          [
+            26150.0,
+            8150.0
+          ],
+          [
+            25850.0,
+            8150.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-02"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a insert on a column-class layer"
+    },
+    {
+      "id": "PV-00051",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00021"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "95",
+        "layer": "A-COLS",
+        "entity_type": "column_symbol",
+        "source_id": "OBS-00021",
+        "coordinates": [
+          [
+            31850.0,
+            -150.0
+          ],
+          [
+            32150.0,
+            -150.0
+          ],
+          [
+            32150.0,
+            150.0
+          ],
+          [
+            31850.0,
+            150.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-02"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a insert on a column-class layer"
+    },
+    {
+      "id": "PV-00052",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00022"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "97",
+        "layer": "A-COLS",
+        "entity_type": "column_symbol",
+        "source_id": "OBS-00022",
+        "coordinates": [
+          [
+            31850.0,
+            7850.0
+          ],
+          [
+            32150.0,
+            7850.0
+          ],
+          [
+            32150.0,
+            8150.0
+          ],
+          [
+            31850.0,
+            8150.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-02"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a insert on a column-class layer"
+    },
+    {
+      "id": "PV-00053",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00023"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "7F",
+        "layer": "A-DOOR",
+        "entity_type": "door",
+        "source_id": "OBS-00023",
+        "coordinates": [
+          [
+            23000.0,
+            0.0
+          ],
+          [
+            23900.0,
+            0.0
+          ],
+          [
+            23900.0,
+            900.0
+          ],
+          [
+            23000.0,
+            900.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-02"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a block (DOOR-900) on a door layer"
+    },
+    {
+      "id": "PV-00054",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00024"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "81",
+        "layer": "A-DOOR",
+        "entity_type": "door",
+        "source_id": "OBS-00024",
+        "coordinates": [
+          [
+            25550.0,
+            4000.0
+          ],
+          [
+            26450.0,
+            4000.0
+          ],
+          [
+            26450.0,
+            4900.0
+          ],
+          [
+            25550.0,
+            4900.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-02"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a block (DOOR-900) on a door layer"
+    },
+    {
+      "id": "PV-00055",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00025"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "83",
+        "layer": "A-DOOR",
+        "entity_type": "door",
+        "source_id": "OBS-00025",
+        "coordinates": [
+          [
+            29000.0,
+            4000.0
+          ],
+          [
+            29900.0,
+            4000.0
+          ],
+          [
+            29900.0,
+            4900.0
+          ],
+          [
+            29000.0,
+            4900.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-02"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a block (DOOR-900) on a door layer"
+    },
+    {
+      "id": "PV-00056",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00026"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "85",
+        "layer": "A-GLAZ",
+        "entity_type": "window",
+        "source_id": "OBS-00026",
+        "coordinates": [
+          [
+            22000.0,
+            7800.0
+          ],
+          [
+            23500.0,
+            7800.0
+          ],
+          [
+            23500.0,
+            8000.0
+          ],
+          [
+            22000.0,
+            8000.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-02"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a block (WINDOW-1500) on a window layer"
+    },
+    {
+      "id": "PV-00057",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00027"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "87",
+        "layer": "A-GLAZ",
+        "entity_type": "window",
+        "source_id": "OBS-00027",
+        "coordinates": [
+          [
+            26000.0,
+            7800.0
+          ],
+          [
+            27500.0,
+            7800.0
+          ],
+          [
+            27500.0,
+            8000.0
+          ],
+          [
+            26000.0,
+            8000.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-02"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a block (WINDOW-1500) on a window layer"
+    },
+    {
+      "id": "PV-00058",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00028"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "89",
+        "layer": "A-GLAZ",
+        "entity_type": "window",
+        "source_id": "OBS-00028",
+        "coordinates": [
+          [
+            30000.0,
+            7800.0
+          ],
+          [
+            31500.0,
+            7800.0
+          ],
+          [
+            31500.0,
+            8000.0
+          ],
+          [
+            30000.0,
+            8000.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-02"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a block (WINDOW-1500) on a window layer"
+    },
+    {
+      "id": "PV-00059",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00029"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "8B",
+        "layer": "A-GLAZ",
+        "entity_type": "window",
+        "source_id": "OBS-00029",
+        "coordinates": [
+          [
+            31800.0,
+            4000.0
+          ],
+          [
+            33300.0,
+            4000.0
+          ],
+          [
+            33300.0,
+            4200.0
+          ],
+          [
+            31800.0,
+            4200.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-02"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a block (WINDOW-1500) on a window layer"
+    },
+    {
+      "id": "PV-00060",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00030"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "99",
+        "layer": "A-GRID",
+        "entity_type": "grid_lines",
+        "source_id": "OBS-00030",
+        "coordinates": [
+          [
+            19400.0,
+            -600.0
+          ],
+          [
+            32600.0,
+            -600.0
+          ],
+          [
+            32600.0,
+            9200.0
+          ],
+          [
+            19400.0,
+            9200.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-02"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "5 entities on layer A-GRID"
+    },
+    {
+      "id": "PV-00061",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00031"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "79",
+        "layer": "A-WALL-EXT",
+        "entity_type": "wall_external",
+        "source_id": "OBS-00031",
+        "coordinates": [
+          [
+            20000.0,
+            0.0
+          ],
+          [
+            32000.0,
+            0.0
+          ],
+          [
+            32000.0,
+            8000.0
+          ],
+          [
+            20000.0,
+            8000.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-02"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "2 entities on layer A-WALL-EXT"
+    },
+    {
+      "id": "PV-00062",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00032"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "7B",
+        "layer": "A-WALL-INT",
+        "entity_type": "wall_internal",
+        "source_id": "OBS-00032",
+        "coordinates": [
+          [
+            25900.0,
+            200.0
+          ],
+          [
+            31800.0,
+            200.0
+          ],
+          [
+            31800.0,
+            7800.0
+          ],
+          [
+            25900.0,
+            7800.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-02"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "4 entities on layer A-WALL-INT"
+    },
+    {
+      "id": "PV-00063",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-03"
+      },
+      "field": "view_type",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "D2",
+        "layer": null,
+        "entity_type": "TEXT",
+        "source_id": "VIEW-03",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": "region of 24 entities"
+      },
+      "method": "title_text",
+      "producer": "oracle.interpretation",
+      "confidence": 0.69,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "Text 'SECOND FLOOR PLAN' announces a floor_plan"
+    },
+    {
+      "id": "PV-00064",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-03"
+      },
+      "field": "view_type",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": null,
+        "entity_type": "region",
+        "source_id": "VIEW-03",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": "region of 24 entities"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.25,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "6 entities lie on wall-class layers"
+    },
+    {
+      "id": "PV-00065",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-03"
+      },
+      "field": "view_type",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": null,
+        "entity_type": "region",
+        "source_id": "VIEW-03",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": "region of 24 entities"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.05,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "7 door/window entities"
+    },
+    {
+      "id": "PV-00066",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-03"
+      },
+      "field": "bbox",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": null,
+        "entity_type": "region",
+        "source_id": "VIEW-03",
+        "coordinates": [
+          [
+            39400.0,
+            -600.0
+          ],
+          [
+            53300.0,
+            9200.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": null
+      },
+      "method": "spatial_cluster",
+      "producer": "oracle.interpretation",
+      "confidence": null,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "24 geometry entities connected within a small tolerance; 7 texts and 0 dimensions inside."
+    },
+    {
+      "id": "PV-00067",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-03"
+      },
+      "field": "level_key",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "D2",
+        "layer": null,
+        "entity_type": "TEXT",
+        "source_id": "VIEW-03",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "level_name",
+      "producer": "oracle.interpretation",
+      "confidence": 0.92,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "The title 'SECOND FLOOR PLAN' names level FLOOR:2 (ordinal)."
+    },
+    {
+      "id": "PV-00068",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-03"
+      },
+      "field": "frame_id",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": null,
+        "entity_type": "region",
+        "source_id": "VIEW-03",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "dominant_direction",
+      "producer": "oracle.interpretation",
+      "confidence": 1.0,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "Dominant line direction 0.0 degrees (100% of line length)."
+    },
+    {
+      "id": "PV-00069",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00033"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "BA",
+        "layer": "A-COLS",
+        "entity_type": "column_symbol",
+        "source_id": "OBS-00033",
+        "coordinates": [
+          [
+            39850.0,
+            -150.0
+          ],
+          [
+            40150.0,
+            -150.0
+          ],
+          [
+            40150.0,
+            150.0
+          ],
+          [
+            39850.0,
+            150.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-03"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a insert on a column-class layer"
+    },
+    {
+      "id": "PV-00070",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00034"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "BC",
+        "layer": "A-COLS",
+        "entity_type": "column_symbol",
+        "source_id": "OBS-00034",
+        "coordinates": [
+          [
+            39850.0,
+            7850.0
+          ],
+          [
+            40150.0,
+            7850.0
+          ],
+          [
+            40150.0,
+            8150.0
+          ],
+          [
+            39850.0,
+            8150.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-03"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a insert on a column-class layer"
+    },
+    {
+      "id": "PV-00071",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00035"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "BE",
+        "layer": "A-COLS",
+        "entity_type": "column_symbol",
+        "source_id": "OBS-00035",
+        "coordinates": [
+          [
+            45850.0,
+            -150.0
+          ],
+          [
+            46150.0,
+            -150.0
+          ],
+          [
+            46150.0,
+            150.0
+          ],
+          [
+            45850.0,
+            150.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-03"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a insert on a column-class layer"
+    },
+    {
+      "id": "PV-00072",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00036"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "C0",
+        "layer": "A-COLS",
+        "entity_type": "column_symbol",
+        "source_id": "OBS-00036",
+        "coordinates": [
+          [
+            45850.0,
+            7850.0
+          ],
+          [
+            46150.0,
+            7850.0
+          ],
+          [
+            46150.0,
+            8150.0
+          ],
+          [
+            45850.0,
+            8150.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-03"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a insert on a column-class layer"
+    },
+    {
+      "id": "PV-00073",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00037"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "C2",
+        "layer": "A-COLS",
+        "entity_type": "column_symbol",
+        "source_id": "OBS-00037",
+        "coordinates": [
+          [
+            51850.0,
+            -150.0
+          ],
+          [
+            52150.0,
+            -150.0
+          ],
+          [
+            52150.0,
+            150.0
+          ],
+          [
+            51850.0,
+            150.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-03"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a insert on a column-class layer"
+    },
+    {
+      "id": "PV-00074",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00038"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "C4",
+        "layer": "A-COLS",
+        "entity_type": "column_symbol",
+        "source_id": "OBS-00038",
+        "coordinates": [
+          [
+            51850.0,
+            7850.0
+          ],
+          [
+            52150.0,
+            7850.0
+          ],
+          [
+            52150.0,
+            8150.0
+          ],
+          [
+            51850.0,
+            8150.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-03"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a insert on a column-class layer"
+    },
+    {
+      "id": "PV-00075",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00039"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "AC",
+        "layer": "A-DOOR",
+        "entity_type": "door",
+        "source_id": "OBS-00039",
+        "coordinates": [
+          [
+            43000.0,
+            0.0
+          ],
+          [
+            43900.0,
+            0.0
+          ],
+          [
+            43900.0,
+            900.0
+          ],
+          [
+            43000.0,
+            900.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-03"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a block (DOOR-900) on a door layer"
+    },
+    {
+      "id": "PV-00076",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00040"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "AE",
+        "layer": "A-DOOR",
+        "entity_type": "door",
+        "source_id": "OBS-00040",
+        "coordinates": [
+          [
+            45550.0,
+            4000.0
+          ],
+          [
+            46450.0,
+            4000.0
+          ],
+          [
+            46450.0,
+            4900.0
+          ],
+          [
+            45550.0,
+            4900.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-03"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a block (DOOR-900) on a door layer"
+    },
+    {
+      "id": "PV-00077",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00041"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "B0",
+        "layer": "A-DOOR",
+        "entity_type": "door",
+        "source_id": "OBS-00041",
+        "coordinates": [
+          [
+            49000.0,
+            4000.0
+          ],
+          [
+            49900.0,
+            4000.0
+          ],
+          [
+            49900.0,
+            4900.0
+          ],
+          [
+            49000.0,
+            4900.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-03"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a block (DOOR-900) on a door layer"
+    },
+    {
+      "id": "PV-00078",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00042"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "B2",
+        "layer": "A-GLAZ",
+        "entity_type": "window",
+        "source_id": "OBS-00042",
+        "coordinates": [
+          [
+            42000.0,
+            7800.0
+          ],
+          [
+            43500.0,
+            7800.0
+          ],
+          [
+            43500.0,
+            8000.0
+          ],
+          [
+            42000.0,
+            8000.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-03"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a block (WINDOW-1500) on a window layer"
+    },
+    {
+      "id": "PV-00079",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00043"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "B4",
+        "layer": "A-GLAZ",
+        "entity_type": "window",
+        "source_id": "OBS-00043",
+        "coordinates": [
+          [
+            46000.0,
+            7800.0
+          ],
+          [
+            47500.0,
+            7800.0
+          ],
+          [
+            47500.0,
+            8000.0
+          ],
+          [
+            46000.0,
+            8000.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-03"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a block (WINDOW-1500) on a window layer"
+    },
+    {
+      "id": "PV-00080",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00044"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "B6",
+        "layer": "A-GLAZ",
+        "entity_type": "window",
+        "source_id": "OBS-00044",
+        "coordinates": [
+          [
+            50000.0,
+            7800.0
+          ],
+          [
+            51500.0,
+            7800.0
+          ],
+          [
+            51500.0,
+            8000.0
+          ],
+          [
+            50000.0,
+            8000.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-03"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a block (WINDOW-1500) on a window layer"
+    },
+    {
+      "id": "PV-00081",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00045"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "B8",
+        "layer": "A-GLAZ",
+        "entity_type": "window",
+        "source_id": "OBS-00045",
+        "coordinates": [
+          [
+            51800.0,
+            4000.0
+          ],
+          [
+            53300.0,
+            4000.0
+          ],
+          [
+            53300.0,
+            4200.0
+          ],
+          [
+            51800.0,
+            4200.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-03"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "a block (WINDOW-1500) on a window layer"
+    },
+    {
+      "id": "PV-00082",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00046"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "C6",
+        "layer": "A-GRID",
+        "entity_type": "grid_lines",
+        "source_id": "OBS-00046",
+        "coordinates": [
+          [
+            39400.0,
+            -600.0
+          ],
+          [
+            52600.0,
+            -600.0
+          ],
+          [
+            52600.0,
+            9200.0
+          ],
+          [
+            39400.0,
+            9200.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-03"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "5 entities on layer A-GRID"
+    },
+    {
+      "id": "PV-00083",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00047"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "A6",
+        "layer": "A-WALL-EXT",
+        "entity_type": "wall_external",
+        "source_id": "OBS-00047",
+        "coordinates": [
+          [
+            40000.0,
+            0.0
+          ],
+          [
+            52000.0,
+            0.0
+          ],
+          [
+            52000.0,
+            8000.0
+          ],
+          [
+            40000.0,
+            8000.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-03"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "2 entities on layer A-WALL-EXT"
+    },
+    {
+      "id": "PV-00084",
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00048"
+      },
+      "field": "kind",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": "A8",
+        "layer": "A-WALL-INT",
+        "entity_type": "wall_internal",
+        "source_id": "OBS-00048",
+        "coordinates": [
+          [
+            45900.0,
+            200.0
+          ],
+          [
+            51800.0,
+            200.0
+          ],
+          [
+            51800.0,
+            7800.0
+          ],
+          [
+            45900.0,
+            7800.0
+          ]
+        ],
+        "coordinate_frame": "drawing coordinates",
+        "context": "view VIEW-03"
+      },
+      "method": "layer_class",
+      "producer": "oracle.interpretation",
+      "confidence": 0.95,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "4 entities on layer A-WALL-INT"
+    },
+    {
+      "id": "PV-00085",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-01"
+      },
+      "field": "alignment_frame_id",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": null,
+        "entity_type": "region",
+        "source_id": "VIEW-01",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "alignment_reference",
+      "producer": "oracle.interpretation",
+      "confidence": 1.0,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "The lowest full plan is the reference for the building frame."
+    },
+    {
+      "id": "PV-00086",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-02"
+      },
+      "field": "alignment_frame_id",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": null,
+        "entity_type": "region",
+        "source_id": "VIEW-02",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "alignment",
+      "producer": "oracle.interpretation",
+      "confidence": 0.98,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "Aligned to VIEW-01 by grid_labels (5 of 5 shared labels agree); same footprint size: translation (0, 0)."
+    },
+    {
+      "id": "PV-00087",
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-03"
+      },
+      "field": "alignment_frame_id",
+      "source": {
+        "file": "plan.dxf",
+        "entity_handle": null,
+        "layer": null,
+        "entity_type": "region",
+        "source_id": "VIEW-03",
+        "coordinates": [],
+        "coordinate_frame": null,
+        "context": null
+      },
+      "method": "alignment",
+      "producer": "oracle.interpretation",
+      "confidence": 0.98,
+      "recorded_at": "2026-09-20T13:22:59Z",
+      "note": "Aligned to VIEW-01 by grid_labels (5 of 5 shared labels agree); same footprint size: translation (0, 0)."
+    }
+  ],
+  "value_status": [
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "SRC-1"
+      },
+      "field": "units",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00002"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-001"
+      },
+      "field": "semantic_class",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00003"
+      ],
+      "note": "none"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-002"
+      },
+      "field": "semantic_class",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00004"
+      ],
+      "note": "token_match"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-003"
+      },
+      "field": "semantic_class",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00005"
+      ],
+      "note": "token_match"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-004"
+      },
+      "field": "semantic_class",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00006"
+      ],
+      "note": "token_match"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-005"
+      },
+      "field": "semantic_class",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00007"
+      ],
+      "note": "token_match"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-006"
+      },
+      "field": "semantic_class",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00008"
+      ],
+      "note": "none"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-007"
+      },
+      "field": "semantic_class",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00009"
+      ],
+      "note": "token_match"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-008"
+      },
+      "field": "semantic_class",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00010"
+      ],
+      "note": "token_match"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-009"
+      },
+      "field": "semantic_class",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00011"
+      ],
+      "note": "token_match"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-010"
+      },
+      "field": "semantic_class",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00012"
+      ],
+      "note": "token_match"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-011"
+      },
+      "field": "semantic_class",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00013"
+      ],
+      "note": "token_match"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-012"
+      },
+      "field": "semantic_class",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00014"
+      ],
+      "note": "token_match"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-013"
+      },
+      "field": "semantic_class",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00015"
+      ],
+      "note": "none"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-014"
+      },
+      "field": "semantic_class",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00016"
+      ],
+      "note": "token_match"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-015"
+      },
+      "field": "semantic_class",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00017"
+      ],
+      "note": "token_match"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "LAY-016"
+      },
+      "field": "semantic_class",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00018"
+      ],
+      "note": "source_flag"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-01"
+      },
+      "field": "view_type",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00019"
+      ],
+      "note": "floor_plan"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-01"
+      },
+      "field": "bbox",
+      "status": "derived",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00022"
+      ],
+      "note": "box around the region's entities"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-01"
+      },
+      "field": "level_key",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00023"
+      ],
+      "note": "keyword"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-01"
+      },
+      "field": "frame_id",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00024"
+      ],
+      "note": "dominant wall direction"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00001"
+      },
+      "field": "kind",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00025"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00002"
+      },
+      "field": "kind",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00026"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00003"
+      },
+      "field": "kind",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00027"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00004"
+      },
+      "field": "kind",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00028"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00005"
+      },
+      "field": "kind",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00029"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00006"
+      },
+      "field": "kind",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00030"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00007"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00031"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00008"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00032"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00009"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00033"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00010"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00034"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00011"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00035"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00012"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00036"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00013"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00037"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00014"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00038"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00015"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00039"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00016"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00040"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-02"
+      },
+      "field": "view_type",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00041"
+      ],
+      "note": "floor_plan"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-02"
+      },
+      "field": "bbox",
+      "status": "derived",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00044"
+      ],
+      "note": "box around the region's entities"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-02"
+      },
+      "field": "level_key",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00045"
+      ],
+      "note": "ordinal"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-02"
+      },
+      "field": "frame_id",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00046"
+      ],
+      "note": "dominant wall direction"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00017"
+      },
+      "field": "kind",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00047"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00018"
+      },
+      "field": "kind",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00048"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00019"
+      },
+      "field": "kind",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00049"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00020"
+      },
+      "field": "kind",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00050"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00021"
+      },
+      "field": "kind",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00051"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00022"
+      },
+      "field": "kind",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00052"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00023"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00053"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00024"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00054"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00025"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00055"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00026"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00056"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00027"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00057"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00028"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00058"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00029"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00059"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00030"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00060"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00031"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00061"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00032"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00062"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-03"
+      },
+      "field": "view_type",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00063"
+      ],
+      "note": "floor_plan"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-03"
+      },
+      "field": "bbox",
+      "status": "derived",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00066"
+      ],
+      "note": "box around the region's entities"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-03"
+      },
+      "field": "level_key",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00067"
+      ],
+      "note": "ordinal"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-03"
+      },
+      "field": "frame_id",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00068"
+      ],
+      "note": "dominant wall direction"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00033"
+      },
+      "field": "kind",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00069"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00034"
+      },
+      "field": "kind",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00070"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00035"
+      },
+      "field": "kind",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00071"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00036"
+      },
+      "field": "kind",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00072"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00037"
+      },
+      "field": "kind",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00073"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00038"
+      },
+      "field": "kind",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00074"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00039"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00075"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00040"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00076"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00041"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00077"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00042"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00078"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00043"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00079"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00044"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00080"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00045"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00081"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00046"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00082"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00047"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00083"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "OBS-00048"
+      },
+      "field": "kind",
+      "status": "source",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00084"
+      ],
+      "note": null
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-01"
+      },
+      "field": "alignment_frame_id",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00085"
+      ],
+      "note": "reference view"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-02"
+      },
+      "field": "alignment_frame_id",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00086"
+      ],
+      "note": "grid_labels (5 of 5 shared labels agree); same footprint size"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-03"
+      },
+      "field": "alignment_frame_id",
+      "status": "inferred",
+      "decision_id": null,
+      "replaces": null,
+      "provenance_ids": [
+        "PV-00087"
+      ],
+      "note": "grid_labels (5 of 5 shared labels agree); same footprint size"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-01"
+      },
+      "field": "review",
+      "status": "engineer_defined",
+      "decision_id": "ENG-0001",
+      "replaces": null,
+      "provenance_ids": [],
+      "note": "accepted"
+    },
+    {
+      "target": {
+        "scope": "architectural",
+        "id": "VIEW-03"
+      },
+      "field": "review",
+      "status": "engineer_defined",
+      "decision_id": "ENG-0002",
+      "replaces": null,
+      "provenance_ids": [],
+      "note": "rejected"
+    }
+  ],
+  "interpretations": [],
+  "architectures": [
+    {
+      "drawing": {
+        "id": "SRC-1",
+        "file": "plan.dxf",
+        "sha256": "d1383c5296ef009c5018be247564bc0fcd7f89a616dcb9aa6399fc2e6a45ff73",
+        "units": {
+          "unit": "mm",
+          "factor_to_mm": 1.0,
+          "confidence": 0.988,
+          "method": "header_metadata_corroborated",
+          "note": null
+        },
+        "declared_unit": "mm",
+        "extents": null,
+        "entity_count": 96,
+        "warnings": [],
+        "revision": null,
+        "interpretation_id": "AINT-1",
+        "interpreter": "oracle.interpretation 2.0.0.dev0",
+        "source_metadata": {
+          "format_version": "AC1032",
+          "unit_code": 4,
+          "layouts": [
+            "Model",
+            "Layout1"
+          ]
+        }
+      },
+      "frames": [
+        {
+          "id": "FRM-0",
+          "name": "Drawing coordinates (source)",
+          "parent": null,
+          "translation": [
+            0.0,
+            0.0
+          ],
+          "rotation_deg": 0.0,
+          "scale": 1.0,
+          "mirrored": false
+        },
+        {
+          "id": "FRM-01",
+          "name": "VIEW-01 local frame",
+          "parent": "FRM-0",
+          "translation": [
+            -600.0,
+            -600.0
+          ],
+          "rotation_deg": 0.0,
+          "scale": 1.0,
+          "mirrored": false
+        },
+        {
+          "id": "FRM-02",
+          "name": "VIEW-02 local frame",
+          "parent": "FRM-0",
+          "translation": [
+            19400.0,
+            -600.0
+          ],
+          "rotation_deg": 0.0,
+          "scale": 1.0,
+          "mirrored": false
+        },
+        {
+          "id": "FRM-03",
+          "name": "VIEW-03 local frame",
+          "parent": "FRM-0",
+          "translation": [
+            39400.0,
+            -600.0
+          ],
+          "rotation_deg": 0.0,
+          "scale": 1.0,
+          "mirrored": false
+        },
+        {
+          "id": "FRM-04",
+          "name": "VIEW-01 to building (reference)",
+          "parent": "FRM-01",
+          "translation": [
+            0.0,
+            0.0
+          ],
+          "rotation_deg": 0.0,
+          "scale": 1.0,
+          "mirrored": false
+        },
+        {
+          "id": "FRM-05",
+          "name": "VIEW-02 to building",
+          "parent": "FRM-02",
+          "translation": [
+            -0.0,
+            -0.0
+          ],
+          "rotation_deg": 0.0,
+          "scale": 1.0,
+          "mirrored": false
+        },
+        {
+          "id": "FRM-06",
+          "name": "VIEW-03 to building",
+          "parent": "FRM-03",
+          "translation": [
+            -0.0,
+            -0.0
+          ],
+          "rotation_deg": 0.0,
+          "scale": 1.0,
+          "mirrored": false
+        }
+      ],
+      "layers": [
+        {
+          "id": "LAY-001",
+          "name": "0",
+          "semantic_class": "unknown",
+          "confidence": 0.0,
+          "method": "none",
+          "note": "no recognisable name",
+          "entity_count": 0
+        },
+        {
+          "id": "LAY-002",
+          "name": "A-ANNO-DIMS",
+          "semantic_class": "dimension",
+          "confidence": 0.95,
+          "method": "token_match",
+          "note": null,
+          "entity_count": 0
+        },
+        {
+          "id": "LAY-003",
+          "name": "A-ANNO-TEXT",
+          "semantic_class": "text_annotation",
+          "confidence": 0.95,
+          "method": "token_match",
+          "note": null,
+          "entity_count": 9
+        },
+        {
+          "id": "LAY-004",
+          "name": "A-COLS",
+          "semantic_class": "column",
+          "confidence": 0.95,
+          "method": "token_match",
+          "note": null,
+          "entity_count": 18
+        },
+        {
+          "id": "LAY-005",
+          "name": "A-DOOR",
+          "semantic_class": "door",
+          "confidence": 0.95,
+          "method": "token_match",
+          "note": null,
+          "entity_count": 9
+        },
+        {
+          "id": "LAY-006",
+          "name": "A-ELEV-OTLN",
+          "semantic_class": "unknown",
+          "confidence": 0.0,
+          "method": "none",
+          "note": "no recognised word in ['ELEV', 'OTLN']",
+          "entity_count": 0
+        },
+        {
+          "id": "LAY-007",
+          "name": "A-FLOR-LEVL",
+          "semantic_class": "level_marker",
+          "confidence": 0.9,
+          "method": "token_match",
+          "note": null,
+          "entity_count": 0
+        },
+        {
+          "id": "LAY-008",
+          "name": "A-FLOR-OVHD",
+          "semantic_class": "floor",
+          "confidence": 0.95,
+          "method": "token_match",
+          "note": null,
+          "entity_count": 0
+        },
+        {
+          "id": "LAY-009",
+          "name": "A-FURN",
+          "semantic_class": "furniture",
+          "confidence": 0.95,
+          "method": "token_match",
+          "note": null,
+          "entity_count": 0
+        },
+        {
+          "id": "LAY-010",
+          "name": "A-GLAZ",
+          "semantic_class": "window",
+          "confidence": 0.95,
+          "method": "token_match",
+          "note": null,
+          "entity_count": 12
+        },
+        {
+          "id": "LAY-011",
+          "name": "A-GRID",
+          "semantic_class": "grid",
+          "confidence": 0.95,
+          "method": "token_match",
+          "note": null,
+          "entity_count": 15
+        },
+        {
+          "id": "LAY-012",
+          "name": "A-GRID-IDEN",
+          "semantic_class": "grid_label",
+          "confidence": 0.95,
+          "method": "token_match",
+          "note": null,
+          "entity_count": 15
+        },
+        {
+          "id": "LAY-013",
+          "name": "A-SECT-CUT",
+          "semantic_class": "unknown",
+          "confidence": 0.0,
+          "method": "none",
+          "note": "no recognised word in ['SECT', 'CUT']",
+          "entity_count": 0
+        },
+        {
+          "id": "LAY-014",
+          "name": "A-WALL-EXT",
+          "semantic_class": "wall_external",
+          "confidence": 0.95,
+          "method": "token_match",
+          "note": null,
+          "entity_count": 6
+        },
+        {
+          "id": "LAY-015",
+          "name": "A-WALL-INT",
+          "semantic_class": "wall_internal",
+          "confidence": 0.95,
+          "method": "token_match",
+          "note": null,
+          "entity_count": 12
+        },
+        {
+          "id": "LAY-016",
+          "name": "Defpoints",
+          "semantic_class": "non_plotting",
+          "confidence": 0.95,
+          "method": "source_flag",
+          "note": "the source marks this layer as not plotting",
+          "entity_count": 0
+        }
+      ],
+      "views": [
+        {
+          "id": "VIEW-01",
+          "view_type": "floor_plan",
+          "title": "GROUND FLOOR PLAN",
+          "level_key": "GROUND",
+          "section_label": null,
+          "orientation": null,
+          "bbox": [
+            -600.0,
+            -600.0,
+            13300.0,
+            9200.0
+          ],
+          "confidence": 0.98,
+          "frame_id": "FRM-01",
+          "alignment_frame_id": "FRM-04",
+          "entity_ids": [
+            "3D",
+            "3E",
+            "3F",
+            "40",
+            "41",
+            "42",
+            "4D",
+            "4F",
+            "51",
+            "53",
+            "55",
+            "57",
+            "59",
+            "60",
+            "62",
+            "64",
+            "66",
+            "68",
+            "6A",
+            "6C",
+            "6E",
+            "70",
+            "72",
+            "74",
+            "6D",
+            "6F",
+            "71",
+            "73",
+            "75",
+            "76",
+            "77"
+          ],
+          "review": "accepted",
+          "superseded_by": [],
+          "variant": null
+        },
+        {
+          "id": "VIEW-02",
+          "view_type": "floor_plan",
+          "title": "FIRST FLOOR PLAN",
+          "level_key": "FLOOR:1",
+          "section_label": null,
+          "orientation": null,
+          "bbox": [
+            19400.0,
+            -600.0,
+            33300.0,
+            9200.0
+          ],
+          "confidence": 0.98,
+          "frame_id": "FRM-02",
+          "alignment_frame_id": "FRM-05",
+          "entity_ids": [
+            "79",
+            "7A",
+            "7B",
+            "7C",
+            "7D",
+            "7E",
+            "7F",
+            "81",
+            "83",
+            "85",
+            "87",
+            "89",
+            "8B",
+            "8D",
+            "8F",
+            "91",
+            "93",
+            "95",
+            "97",
+            "99",
+            "9B",
+            "9D",
+            "9F",
+            "A1",
+            "9A",
+            "9C",
+            "9E",
+            "A0",
+            "A2",
+            "A3",
+            "A4"
+          ],
+          "review": "proposed",
+          "superseded_by": [],
+          "variant": null
+        },
+        {
+          "id": "VIEW-03",
+          "view_type": "floor_plan",
+          "title": "SECOND FLOOR PLAN",
+          "level_key": "FLOOR:2",
+          "section_label": null,
+          "orientation": null,
+          "bbox": [
+            39400.0,
+            -600.0,
+            53300.0,
+            9200.0
+          ],
+          "confidence": 0.98,
+          "frame_id": "FRM-03",
+          "alignment_frame_id": "FRM-06",
+          "entity_ids": [
+            "A6",
+            "A7",
+            "A8",
+            "A9",
+            "AA",
+            "AB",
+            "AC",
+            "AE",
+            "B0",
+            "B2",
+            "B4",
+            "B6",
+            "B8",
+            "BA",
+            "BC",
+            "BE",
+            "C0",
+            "C2",
+            "C4",
+            "C6",
+            "C8",
+            "CA",
+            "CC",
+            "CE",
+            "C7",
+            "C9",
+            "CB",
+            "CD",
+            "CF",
+            "D0",
+            "D1"
+          ],
+          "review": "rejected",
+          "superseded_by": [],
+          "variant": null
+        }
+      ],
+      "observations": [
+        {
+          "id": "OBS-00001",
+          "kind": "column_symbol",
+          "view_id": "VIEW-01",
+          "basis": "inferred",
+          "confidence": 0.81,
+          "layer": "A-COLS",
+          "entity_ids": [
+            "60"
+          ],
+          "geometry": [
+            [
+              -150.0,
+              -150.0
+            ],
+            [
+              150.0,
+              -150.0
+            ],
+            [
+              150.0,
+              150.0
+            ],
+            [
+              -150.0,
+              150.0
+            ]
+          ],
+          "closed": true,
+          "label": "COLUMN-300",
+          "count": 1,
+          "hint": "column_candidate",
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00002",
+          "kind": "column_symbol",
+          "view_id": "VIEW-01",
+          "basis": "inferred",
+          "confidence": 0.81,
+          "layer": "A-COLS",
+          "entity_ids": [
+            "62"
+          ],
+          "geometry": [
+            [
+              -150.0,
+              7850.0
+            ],
+            [
+              150.0,
+              7850.0
+            ],
+            [
+              150.0,
+              8150.0
+            ],
+            [
+              -150.0,
+              8150.0
+            ]
+          ],
+          "closed": true,
+          "label": "COLUMN-300",
+          "count": 1,
+          "hint": "column_candidate",
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00003",
+          "kind": "column_symbol",
+          "view_id": "VIEW-01",
+          "basis": "inferred",
+          "confidence": 0.81,
+          "layer": "A-COLS",
+          "entity_ids": [
+            "64"
+          ],
+          "geometry": [
+            [
+              5850.0,
+              -150.0
+            ],
+            [
+              6150.0,
+              -150.0
+            ],
+            [
+              6150.0,
+              150.0
+            ],
+            [
+              5850.0,
+              150.0
+            ]
+          ],
+          "closed": true,
+          "label": "COLUMN-300",
+          "count": 1,
+          "hint": "column_candidate",
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00004",
+          "kind": "column_symbol",
+          "view_id": "VIEW-01",
+          "basis": "inferred",
+          "confidence": 0.81,
+          "layer": "A-COLS",
+          "entity_ids": [
+            "66"
+          ],
+          "geometry": [
+            [
+              5850.0,
+              7850.0
+            ],
+            [
+              6150.0,
+              7850.0
+            ],
+            [
+              6150.0,
+              8150.0
+            ],
+            [
+              5850.0,
+              8150.0
+            ]
+          ],
+          "closed": true,
+          "label": "COLUMN-300",
+          "count": 1,
+          "hint": "column_candidate",
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00005",
+          "kind": "column_symbol",
+          "view_id": "VIEW-01",
+          "basis": "inferred",
+          "confidence": 0.81,
+          "layer": "A-COLS",
+          "entity_ids": [
+            "68"
+          ],
+          "geometry": [
+            [
+              11850.0,
+              -150.0
+            ],
+            [
+              12150.0,
+              -150.0
+            ],
+            [
+              12150.0,
+              150.0
+            ],
+            [
+              11850.0,
+              150.0
+            ]
+          ],
+          "closed": true,
+          "label": "COLUMN-300",
+          "count": 1,
+          "hint": "column_candidate",
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00006",
+          "kind": "column_symbol",
+          "view_id": "VIEW-01",
+          "basis": "inferred",
+          "confidence": 0.81,
+          "layer": "A-COLS",
+          "entity_ids": [
+            "6A"
+          ],
+          "geometry": [
+            [
+              11850.0,
+              7850.0
+            ],
+            [
+              12150.0,
+              7850.0
+            ],
+            [
+              12150.0,
+              8150.0
+            ],
+            [
+              11850.0,
+              8150.0
+            ]
+          ],
+          "closed": true,
+          "label": "COLUMN-300",
+          "count": 1,
+          "hint": "column_candidate",
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00007",
+          "kind": "door",
+          "view_id": "VIEW-01",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-DOOR",
+          "entity_ids": [
+            "4D"
+          ],
+          "geometry": [
+            [
+              3000.0,
+              0.0
+            ],
+            [
+              3900.0,
+              0.0
+            ],
+            [
+              3900.0,
+              900.0
+            ],
+            [
+              3000.0,
+              900.0
+            ]
+          ],
+          "closed": true,
+          "label": "DOOR-900",
+          "count": 1,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00008",
+          "kind": "door",
+          "view_id": "VIEW-01",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-DOOR",
+          "entity_ids": [
+            "4F"
+          ],
+          "geometry": [
+            [
+              5550.0,
+              4000.0
+            ],
+            [
+              6450.0,
+              4000.0
+            ],
+            [
+              6450.0,
+              4900.0
+            ],
+            [
+              5550.0,
+              4900.0
+            ]
+          ],
+          "closed": true,
+          "label": "DOOR-900",
+          "count": 1,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00009",
+          "kind": "door",
+          "view_id": "VIEW-01",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-DOOR",
+          "entity_ids": [
+            "51"
+          ],
+          "geometry": [
+            [
+              9000.0,
+              4000.0
+            ],
+            [
+              9900.0,
+              4000.0
+            ],
+            [
+              9900.0,
+              4900.0
+            ],
+            [
+              9000.0,
+              4900.0
+            ]
+          ],
+          "closed": true,
+          "label": "DOOR-900",
+          "count": 1,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00010",
+          "kind": "window",
+          "view_id": "VIEW-01",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-GLAZ",
+          "entity_ids": [
+            "53"
+          ],
+          "geometry": [
+            [
+              2000.0,
+              7800.0
+            ],
+            [
+              3500.0,
+              7800.0
+            ],
+            [
+              3500.0,
+              8000.0
+            ],
+            [
+              2000.0,
+              8000.0
+            ]
+          ],
+          "closed": true,
+          "label": "WINDOW-1500",
+          "count": 1,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00011",
+          "kind": "window",
+          "view_id": "VIEW-01",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-GLAZ",
+          "entity_ids": [
+            "55"
+          ],
+          "geometry": [
+            [
+              6000.0,
+              7800.0
+            ],
+            [
+              7500.0,
+              7800.0
+            ],
+            [
+              7500.0,
+              8000.0
+            ],
+            [
+              6000.0,
+              8000.0
+            ]
+          ],
+          "closed": true,
+          "label": "WINDOW-1500",
+          "count": 1,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00012",
+          "kind": "window",
+          "view_id": "VIEW-01",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-GLAZ",
+          "entity_ids": [
+            "57"
+          ],
+          "geometry": [
+            [
+              10000.0,
+              7800.0
+            ],
+            [
+              11500.0,
+              7800.0
+            ],
+            [
+              11500.0,
+              8000.0
+            ],
+            [
+              10000.0,
+              8000.0
+            ]
+          ],
+          "closed": true,
+          "label": "WINDOW-1500",
+          "count": 1,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00013",
+          "kind": "window",
+          "view_id": "VIEW-01",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-GLAZ",
+          "entity_ids": [
+            "59"
+          ],
+          "geometry": [
+            [
+              11800.0,
+              4000.0
+            ],
+            [
+              13300.0,
+              4000.0
+            ],
+            [
+              13300.0,
+              4200.0
+            ],
+            [
+              11800.0,
+              4200.0
+            ]
+          ],
+          "closed": true,
+          "label": "WINDOW-1500",
+          "count": 1,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00014",
+          "kind": "grid_lines",
+          "view_id": "VIEW-01",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-GRID",
+          "entity_ids": [
+            "6C",
+            "6E",
+            "70",
+            "72",
+            "74"
+          ],
+          "geometry": [
+            [
+              -600.0,
+              -600.0
+            ],
+            [
+              12600.0,
+              -600.0
+            ],
+            [
+              12600.0,
+              9200.0
+            ],
+            [
+              -600.0,
+              9200.0
+            ]
+          ],
+          "closed": true,
+          "label": null,
+          "count": 5,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00015",
+          "kind": "wall_external",
+          "view_id": "VIEW-01",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-WALL-EXT",
+          "entity_ids": [
+            "3D",
+            "3E"
+          ],
+          "geometry": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              12000.0,
+              0.0
+            ],
+            [
+              12000.0,
+              8000.0
+            ],
+            [
+              0.0,
+              8000.0
+            ]
+          ],
+          "closed": true,
+          "label": null,
+          "count": 2,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00016",
+          "kind": "wall_internal",
+          "view_id": "VIEW-01",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-WALL-INT",
+          "entity_ids": [
+            "3F",
+            "40",
+            "41",
+            "42"
+          ],
+          "geometry": [
+            [
+              5900.0,
+              200.0
+            ],
+            [
+              11800.0,
+              200.0
+            ],
+            [
+              11800.0,
+              7800.0
+            ],
+            [
+              5900.0,
+              7800.0
+            ]
+          ],
+          "closed": true,
+          "label": null,
+          "count": 4,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00017",
+          "kind": "column_symbol",
+          "view_id": "VIEW-02",
+          "basis": "inferred",
+          "confidence": 0.81,
+          "layer": "A-COLS",
+          "entity_ids": [
+            "8D"
+          ],
+          "geometry": [
+            [
+              19850.0,
+              -150.0
+            ],
+            [
+              20150.0,
+              -150.0
+            ],
+            [
+              20150.0,
+              150.0
+            ],
+            [
+              19850.0,
+              150.0
+            ]
+          ],
+          "closed": true,
+          "label": "COLUMN-300",
+          "count": 1,
+          "hint": "column_candidate",
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00018",
+          "kind": "column_symbol",
+          "view_id": "VIEW-02",
+          "basis": "inferred",
+          "confidence": 0.81,
+          "layer": "A-COLS",
+          "entity_ids": [
+            "8F"
+          ],
+          "geometry": [
+            [
+              19850.0,
+              7850.0
+            ],
+            [
+              20150.0,
+              7850.0
+            ],
+            [
+              20150.0,
+              8150.0
+            ],
+            [
+              19850.0,
+              8150.0
+            ]
+          ],
+          "closed": true,
+          "label": "COLUMN-300",
+          "count": 1,
+          "hint": "column_candidate",
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00019",
+          "kind": "column_symbol",
+          "view_id": "VIEW-02",
+          "basis": "inferred",
+          "confidence": 0.81,
+          "layer": "A-COLS",
+          "entity_ids": [
+            "91"
+          ],
+          "geometry": [
+            [
+              25850.0,
+              -150.0
+            ],
+            [
+              26150.0,
+              -150.0
+            ],
+            [
+              26150.0,
+              150.0
+            ],
+            [
+              25850.0,
+              150.0
+            ]
+          ],
+          "closed": true,
+          "label": "COLUMN-300",
+          "count": 1,
+          "hint": "column_candidate",
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00020",
+          "kind": "column_symbol",
+          "view_id": "VIEW-02",
+          "basis": "inferred",
+          "confidence": 0.81,
+          "layer": "A-COLS",
+          "entity_ids": [
+            "93"
+          ],
+          "geometry": [
+            [
+              25850.0,
+              7850.0
+            ],
+            [
+              26150.0,
+              7850.0
+            ],
+            [
+              26150.0,
+              8150.0
+            ],
+            [
+              25850.0,
+              8150.0
+            ]
+          ],
+          "closed": true,
+          "label": "COLUMN-300",
+          "count": 1,
+          "hint": "column_candidate",
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00021",
+          "kind": "column_symbol",
+          "view_id": "VIEW-02",
+          "basis": "inferred",
+          "confidence": 0.81,
+          "layer": "A-COLS",
+          "entity_ids": [
+            "95"
+          ],
+          "geometry": [
+            [
+              31850.0,
+              -150.0
+            ],
+            [
+              32150.0,
+              -150.0
+            ],
+            [
+              32150.0,
+              150.0
+            ],
+            [
+              31850.0,
+              150.0
+            ]
+          ],
+          "closed": true,
+          "label": "COLUMN-300",
+          "count": 1,
+          "hint": "column_candidate",
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00022",
+          "kind": "column_symbol",
+          "view_id": "VIEW-02",
+          "basis": "inferred",
+          "confidence": 0.81,
+          "layer": "A-COLS",
+          "entity_ids": [
+            "97"
+          ],
+          "geometry": [
+            [
+              31850.0,
+              7850.0
+            ],
+            [
+              32150.0,
+              7850.0
+            ],
+            [
+              32150.0,
+              8150.0
+            ],
+            [
+              31850.0,
+              8150.0
+            ]
+          ],
+          "closed": true,
+          "label": "COLUMN-300",
+          "count": 1,
+          "hint": "column_candidate",
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00023",
+          "kind": "door",
+          "view_id": "VIEW-02",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-DOOR",
+          "entity_ids": [
+            "7F"
+          ],
+          "geometry": [
+            [
+              23000.0,
+              0.0
+            ],
+            [
+              23900.0,
+              0.0
+            ],
+            [
+              23900.0,
+              900.0
+            ],
+            [
+              23000.0,
+              900.0
+            ]
+          ],
+          "closed": true,
+          "label": "DOOR-900",
+          "count": 1,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00024",
+          "kind": "door",
+          "view_id": "VIEW-02",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-DOOR",
+          "entity_ids": [
+            "81"
+          ],
+          "geometry": [
+            [
+              25550.0,
+              4000.0
+            ],
+            [
+              26450.0,
+              4000.0
+            ],
+            [
+              26450.0,
+              4900.0
+            ],
+            [
+              25550.0,
+              4900.0
+            ]
+          ],
+          "closed": true,
+          "label": "DOOR-900",
+          "count": 1,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00025",
+          "kind": "door",
+          "view_id": "VIEW-02",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-DOOR",
+          "entity_ids": [
+            "83"
+          ],
+          "geometry": [
+            [
+              29000.0,
+              4000.0
+            ],
+            [
+              29900.0,
+              4000.0
+            ],
+            [
+              29900.0,
+              4900.0
+            ],
+            [
+              29000.0,
+              4900.0
+            ]
+          ],
+          "closed": true,
+          "label": "DOOR-900",
+          "count": 1,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00026",
+          "kind": "window",
+          "view_id": "VIEW-02",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-GLAZ",
+          "entity_ids": [
+            "85"
+          ],
+          "geometry": [
+            [
+              22000.0,
+              7800.0
+            ],
+            [
+              23500.0,
+              7800.0
+            ],
+            [
+              23500.0,
+              8000.0
+            ],
+            [
+              22000.0,
+              8000.0
+            ]
+          ],
+          "closed": true,
+          "label": "WINDOW-1500",
+          "count": 1,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00027",
+          "kind": "window",
+          "view_id": "VIEW-02",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-GLAZ",
+          "entity_ids": [
+            "87"
+          ],
+          "geometry": [
+            [
+              26000.0,
+              7800.0
+            ],
+            [
+              27500.0,
+              7800.0
+            ],
+            [
+              27500.0,
+              8000.0
+            ],
+            [
+              26000.0,
+              8000.0
+            ]
+          ],
+          "closed": true,
+          "label": "WINDOW-1500",
+          "count": 1,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00028",
+          "kind": "window",
+          "view_id": "VIEW-02",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-GLAZ",
+          "entity_ids": [
+            "89"
+          ],
+          "geometry": [
+            [
+              30000.0,
+              7800.0
+            ],
+            [
+              31500.0,
+              7800.0
+            ],
+            [
+              31500.0,
+              8000.0
+            ],
+            [
+              30000.0,
+              8000.0
+            ]
+          ],
+          "closed": true,
+          "label": "WINDOW-1500",
+          "count": 1,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00029",
+          "kind": "window",
+          "view_id": "VIEW-02",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-GLAZ",
+          "entity_ids": [
+            "8B"
+          ],
+          "geometry": [
+            [
+              31800.0,
+              4000.0
+            ],
+            [
+              33300.0,
+              4000.0
+            ],
+            [
+              33300.0,
+              4200.0
+            ],
+            [
+              31800.0,
+              4200.0
+            ]
+          ],
+          "closed": true,
+          "label": "WINDOW-1500",
+          "count": 1,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00030",
+          "kind": "grid_lines",
+          "view_id": "VIEW-02",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-GRID",
+          "entity_ids": [
+            "99",
+            "9B",
+            "9D",
+            "9F",
+            "A1"
+          ],
+          "geometry": [
+            [
+              19400.0,
+              -600.0
+            ],
+            [
+              32600.0,
+              -600.0
+            ],
+            [
+              32600.0,
+              9200.0
+            ],
+            [
+              19400.0,
+              9200.0
+            ]
+          ],
+          "closed": true,
+          "label": null,
+          "count": 5,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00031",
+          "kind": "wall_external",
+          "view_id": "VIEW-02",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-WALL-EXT",
+          "entity_ids": [
+            "79",
+            "7A"
+          ],
+          "geometry": [
+            [
+              20000.0,
+              0.0
+            ],
+            [
+              32000.0,
+              0.0
+            ],
+            [
+              32000.0,
+              8000.0
+            ],
+            [
+              20000.0,
+              8000.0
+            ]
+          ],
+          "closed": true,
+          "label": null,
+          "count": 2,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00032",
+          "kind": "wall_internal",
+          "view_id": "VIEW-02",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-WALL-INT",
+          "entity_ids": [
+            "7B",
+            "7C",
+            "7D",
+            "7E"
+          ],
+          "geometry": [
+            [
+              25900.0,
+              200.0
+            ],
+            [
+              31800.0,
+              200.0
+            ],
+            [
+              31800.0,
+              7800.0
+            ],
+            [
+              25900.0,
+              7800.0
+            ]
+          ],
+          "closed": true,
+          "label": null,
+          "count": 4,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00033",
+          "kind": "column_symbol",
+          "view_id": "VIEW-03",
+          "basis": "inferred",
+          "confidence": 0.81,
+          "layer": "A-COLS",
+          "entity_ids": [
+            "BA"
+          ],
+          "geometry": [
+            [
+              39850.0,
+              -150.0
+            ],
+            [
+              40150.0,
+              -150.0
+            ],
+            [
+              40150.0,
+              150.0
+            ],
+            [
+              39850.0,
+              150.0
+            ]
+          ],
+          "closed": true,
+          "label": "COLUMN-300",
+          "count": 1,
+          "hint": "column_candidate",
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00034",
+          "kind": "column_symbol",
+          "view_id": "VIEW-03",
+          "basis": "inferred",
+          "confidence": 0.81,
+          "layer": "A-COLS",
+          "entity_ids": [
+            "BC"
+          ],
+          "geometry": [
+            [
+              39850.0,
+              7850.0
+            ],
+            [
+              40150.0,
+              7850.0
+            ],
+            [
+              40150.0,
+              8150.0
+            ],
+            [
+              39850.0,
+              8150.0
+            ]
+          ],
+          "closed": true,
+          "label": "COLUMN-300",
+          "count": 1,
+          "hint": "column_candidate",
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00035",
+          "kind": "column_symbol",
+          "view_id": "VIEW-03",
+          "basis": "inferred",
+          "confidence": 0.81,
+          "layer": "A-COLS",
+          "entity_ids": [
+            "BE"
+          ],
+          "geometry": [
+            [
+              45850.0,
+              -150.0
+            ],
+            [
+              46150.0,
+              -150.0
+            ],
+            [
+              46150.0,
+              150.0
+            ],
+            [
+              45850.0,
+              150.0
+            ]
+          ],
+          "closed": true,
+          "label": "COLUMN-300",
+          "count": 1,
+          "hint": "column_candidate",
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00036",
+          "kind": "column_symbol",
+          "view_id": "VIEW-03",
+          "basis": "inferred",
+          "confidence": 0.81,
+          "layer": "A-COLS",
+          "entity_ids": [
+            "C0"
+          ],
+          "geometry": [
+            [
+              45850.0,
+              7850.0
+            ],
+            [
+              46150.0,
+              7850.0
+            ],
+            [
+              46150.0,
+              8150.0
+            ],
+            [
+              45850.0,
+              8150.0
+            ]
+          ],
+          "closed": true,
+          "label": "COLUMN-300",
+          "count": 1,
+          "hint": "column_candidate",
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00037",
+          "kind": "column_symbol",
+          "view_id": "VIEW-03",
+          "basis": "inferred",
+          "confidence": 0.81,
+          "layer": "A-COLS",
+          "entity_ids": [
+            "C2"
+          ],
+          "geometry": [
+            [
+              51850.0,
+              -150.0
+            ],
+            [
+              52150.0,
+              -150.0
+            ],
+            [
+              52150.0,
+              150.0
+            ],
+            [
+              51850.0,
+              150.0
+            ]
+          ],
+          "closed": true,
+          "label": "COLUMN-300",
+          "count": 1,
+          "hint": "column_candidate",
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00038",
+          "kind": "column_symbol",
+          "view_id": "VIEW-03",
+          "basis": "inferred",
+          "confidence": 0.81,
+          "layer": "A-COLS",
+          "entity_ids": [
+            "C4"
+          ],
+          "geometry": [
+            [
+              51850.0,
+              7850.0
+            ],
+            [
+              52150.0,
+              7850.0
+            ],
+            [
+              52150.0,
+              8150.0
+            ],
+            [
+              51850.0,
+              8150.0
+            ]
+          ],
+          "closed": true,
+          "label": "COLUMN-300",
+          "count": 1,
+          "hint": "column_candidate",
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00039",
+          "kind": "door",
+          "view_id": "VIEW-03",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-DOOR",
+          "entity_ids": [
+            "AC"
+          ],
+          "geometry": [
+            [
+              43000.0,
+              0.0
+            ],
+            [
+              43900.0,
+              0.0
+            ],
+            [
+              43900.0,
+              900.0
+            ],
+            [
+              43000.0,
+              900.0
+            ]
+          ],
+          "closed": true,
+          "label": "DOOR-900",
+          "count": 1,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00040",
+          "kind": "door",
+          "view_id": "VIEW-03",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-DOOR",
+          "entity_ids": [
+            "AE"
+          ],
+          "geometry": [
+            [
+              45550.0,
+              4000.0
+            ],
+            [
+              46450.0,
+              4000.0
+            ],
+            [
+              46450.0,
+              4900.0
+            ],
+            [
+              45550.0,
+              4900.0
+            ]
+          ],
+          "closed": true,
+          "label": "DOOR-900",
+          "count": 1,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00041",
+          "kind": "door",
+          "view_id": "VIEW-03",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-DOOR",
+          "entity_ids": [
+            "B0"
+          ],
+          "geometry": [
+            [
+              49000.0,
+              4000.0
+            ],
+            [
+              49900.0,
+              4000.0
+            ],
+            [
+              49900.0,
+              4900.0
+            ],
+            [
+              49000.0,
+              4900.0
+            ]
+          ],
+          "closed": true,
+          "label": "DOOR-900",
+          "count": 1,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00042",
+          "kind": "window",
+          "view_id": "VIEW-03",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-GLAZ",
+          "entity_ids": [
+            "B2"
+          ],
+          "geometry": [
+            [
+              42000.0,
+              7800.0
+            ],
+            [
+              43500.0,
+              7800.0
+            ],
+            [
+              43500.0,
+              8000.0
+            ],
+            [
+              42000.0,
+              8000.0
+            ]
+          ],
+          "closed": true,
+          "label": "WINDOW-1500",
+          "count": 1,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00043",
+          "kind": "window",
+          "view_id": "VIEW-03",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-GLAZ",
+          "entity_ids": [
+            "B4"
+          ],
+          "geometry": [
+            [
+              46000.0,
+              7800.0
+            ],
+            [
+              47500.0,
+              7800.0
+            ],
+            [
+              47500.0,
+              8000.0
+            ],
+            [
+              46000.0,
+              8000.0
+            ]
+          ],
+          "closed": true,
+          "label": "WINDOW-1500",
+          "count": 1,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00044",
+          "kind": "window",
+          "view_id": "VIEW-03",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-GLAZ",
+          "entity_ids": [
+            "B6"
+          ],
+          "geometry": [
+            [
+              50000.0,
+              7800.0
+            ],
+            [
+              51500.0,
+              7800.0
+            ],
+            [
+              51500.0,
+              8000.0
+            ],
+            [
+              50000.0,
+              8000.0
+            ]
+          ],
+          "closed": true,
+          "label": "WINDOW-1500",
+          "count": 1,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00045",
+          "kind": "window",
+          "view_id": "VIEW-03",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-GLAZ",
+          "entity_ids": [
+            "B8"
+          ],
+          "geometry": [
+            [
+              51800.0,
+              4000.0
+            ],
+            [
+              53300.0,
+              4000.0
+            ],
+            [
+              53300.0,
+              4200.0
+            ],
+            [
+              51800.0,
+              4200.0
+            ]
+          ],
+          "closed": true,
+          "label": "WINDOW-1500",
+          "count": 1,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00046",
+          "kind": "grid_lines",
+          "view_id": "VIEW-03",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-GRID",
+          "entity_ids": [
+            "C6",
+            "C8",
+            "CA",
+            "CC",
+            "CE"
+          ],
+          "geometry": [
+            [
+              39400.0,
+              -600.0
+            ],
+            [
+              52600.0,
+              -600.0
+            ],
+            [
+              52600.0,
+              9200.0
+            ],
+            [
+              39400.0,
+              9200.0
+            ]
+          ],
+          "closed": true,
+          "label": null,
+          "count": 5,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00047",
+          "kind": "wall_external",
+          "view_id": "VIEW-03",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-WALL-EXT",
+          "entity_ids": [
+            "A6",
+            "A7"
+          ],
+          "geometry": [
+            [
+              40000.0,
+              0.0
+            ],
+            [
+              52000.0,
+              0.0
+            ],
+            [
+              52000.0,
+              8000.0
+            ],
+            [
+              40000.0,
+              8000.0
+            ]
+          ],
+          "closed": true,
+          "label": null,
+          "count": 2,
+          "hint": null,
+          "review": "proposed"
+        },
+        {
+          "id": "OBS-00048",
+          "kind": "wall_internal",
+          "view_id": "VIEW-03",
+          "basis": "source",
+          "confidence": 0.85,
+          "layer": "A-WALL-INT",
+          "entity_ids": [
+            "A8",
+            "A9",
+            "AA",
+            "AB"
+          ],
+          "geometry": [
+            [
+              45900.0,
+              200.0
+            ],
+            [
+              51800.0,
+              200.0
+            ],
+            [
+              51800.0,
+              7800.0
+            ],
+            [
+              45900.0,
+              7800.0
+            ]
+          ],
+          "closed": true,
+          "label": null,
+          "count": 4,
+          "hint": null,
+          "review": "proposed"
+        }
+      ],
+      "heights": [],
+      "findings": [
+        {
+          "id": "FND-001",
+          "question": "How many levels does the building have?",
+          "agreement": "insufficient",
+          "summary": "Only one kind of view gives level evidence; nothing to compare it with.",
+          "views": [
+            "VIEW-01",
+            "VIEW-02",
+            "VIEW-03"
+          ],
+          "interpretation_set_id": null
+        }
+      ]
+    }
+  ],
+  "evidence_links": []
+}
